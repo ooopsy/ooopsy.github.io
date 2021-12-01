@@ -21,7 +21,7 @@
 title: Try to keep code clean
 email: jintian8899@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  어중간하게 잘해서 더 괴롭다.
+  어중간하게 잘해서 넘 괴롭다.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  ooopsy
