@@ -17,11 +17,12 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
+Website: https://github.com/ooopsy/ooopsy.github.io
 
 title: Try to keep code clean
 email: jintian8899@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  어중간하게 잘해서 넘 괴롭다.
+  어중간하게 잘하는 중국인 개발자.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  ooopsy
@@ -30,6 +31,15 @@ github_username:  ooopsy
 theme: jekyll-theme-yat
 plugins:
   - jekyll-feed
+
+yat:
+  date_format: "%Y %m %d"
+
+defaults:
+  home:
+    heading: "어중간하게 잘하는 중국인 개발자."
+    subheading: "jintian8899@gmail.com"
+    banner: "/my_assets/banner/banner.jpg"
 
 # Exclude from processing.
 # The following items will not be processed, by default.
