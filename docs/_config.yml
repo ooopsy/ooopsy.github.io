@@ -22,7 +22,7 @@ Website: https://github.com/ooopsy/ooopsy.github.io
 title: Try to keep code clean
 email: jintian8899@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  어중간하게 잘하는 중국인 개발자.
+  어중간하게 잘하는 개발자.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  ooopsy
@@ -37,7 +37,7 @@ yat:
 
 defaults:
   home:
-    heading: "어중간하게 잘하는 중국인 개발자."
+    heading: "어중간하게 잘하는 개발자."
     subheading: "jintian8899@gmail.com"
     banner: "/my_assets/banner/banner.jpg"
 
