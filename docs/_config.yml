@@ -39,7 +39,7 @@ defaults:
   home:
     heading: "어중간하게 잘하는 개발자."
     subheading: "jintian8899@gmail.com"
-    banner: "/my_assets/banner/my-banner.jpg"
+    banner: "/my_assets/banner/my-banner.jpeg"
 
 # Exclude from processing.
 # The following items will not be processed, by default.
