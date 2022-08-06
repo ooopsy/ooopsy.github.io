@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-08-06T18:24:35+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">Keycloak 카카오 로그인 연동</title><link href="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" rel="alternate" type="text/html" title="Keycloak 카카오 로그인 연동" /><published>2022-08-05T22:49:20+09:00</published><updated>2022-08-05T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/05/Keycloak%20%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1%20%EB%A1%9C%EA%B7%B8%EC%9D%B8</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html">&lt;p&gt;카카오 로그인 22년 3월 부터 OIDC를 지원하게 돼어 keycloak과&lt;br /&gt;
+별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다.&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;카카오 개발자 센터에서 앱을 먼저 생성한다.&lt;br /&gt;
+홈페이지: &lt;a href=&quot;https://developers.kakao.com/&quot;&gt;https://developers.kakao.com&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;비즈 앱 생성 안해도 돼지만   카카오 아이디 외  토큰에 이메일, 닉네임 등 다른&lt;br /&gt;
+정보를 받을서 없어 사업자 등록 번호로 비즈 앱을 생성해준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao//bizapp.png&quot; alt=&quot;bizapp!&quot; title=&quot;bizapp&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;카카오 로그인 메뉴에서  로그인 기능 및  OpenIDConnect 활성화 설정을 On&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao//basic_settting.png&quot; alt=&quot;basic setting!&quot; title=&quot;basic setting&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;동의항목에서 카카오 아이디 및 이메일 외 추가로 받고 싶은 필드들을 활성화 해준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao//agree.png&quot; alt=&quot;agree!&quot; title=&quot;agree&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;키클락 관리자 콘솔에서 Identity providers -&amp;gt; OpenID Connect v1.0을 선택한다&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao//keycloak_idp.png&quot; alt=&quot;chose keycloak menu!&quot; title=&quot;chose keycloak menu&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; Discovery endpoint에 카카오 메타 정보를 입력해준다.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://kauth.kakao.com/.well-known/openid-configuration
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/insert_meta.png&quot; alt=&quot;insert meta!&quot; title=&quot;insert meta&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; Redirect URI를 카카오 로그인 메뉴의 Redirect URI에 등록 해준다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;http://localhost:8080/realms/MY/broker/oidc/endpoint
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/keycloak_redirect_url.png&quot; alt=&quot;keycloak_redirect_url!&quot; /&gt;&lt;br /&gt;
+&lt;img src=&quot;/assets/images/kakao/kakao_redirecturi.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; Client ID에  카카오 앱키 REST API 키를 입력한다.&lt;br /&gt;
+카카오는 secret key를 사용하지 않기에 Client Secret는 의미로 입력하면 됀다.&lt;br /&gt;
+입력 완료후 저장하면 해당 Realm 관리자 콘솔에 접속하여 카카오 로그인 버튼이 생성됀거를 확인 할수 있다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/kakao_app_key.png&quot; alt=&quot;kakao app key!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/keycloak_client_id.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/login_page.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; 앞서 동의항목에서 추가로 활성화한 필들을 사용자 정보에 저장하고  싶은면&lt;br /&gt;
+Mappers에 등록해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/mappers.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/mapper_detail.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; 카카오 로그인을 통해 생성한 계정의 계정 정보에서 Mapper로 등록한 필드들이&lt;br /&gt;
+User Attribute에 추가됀것을 확인할 수 있다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/user_attribute.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><category term="카카오로그인" /><summary type="html">카카오 로그인 22년 3월 부터 OIDC를 지원하게 돼어 keycloak과 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다.</summary></entry><entry><title type="html">Keycloak 로컬 설치</title><link href="http://localhost:4000/keycloak/2022/08/04/Keycloak-%EB%A1%9C%EC%BB%AC-%EC%84%A4%EC%B9%98.html" rel="alternate" type="text/html" title="Keycloak 로컬 설치" /><published>2022-08-04T22:49:20+09:00</published><updated>2022-08-04T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/04/Keycloak%20%EB%A1%9C%EC%BB%AC%20%EC%84%A4%EC%B9%98</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/04/Keycloak-%EB%A1%9C%EC%BB%AC-%EC%84%A4%EC%B9%98.html">&lt;p&gt;다운로드:   &lt;a href=&quot;https://www.keycloak.org/downloads&quot;&gt;https://www.keycloak.org/downloads&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Keycloak  19 버전 부터  JDK 11 이상만 지원한다.&lt;br /&gt;
+JAVA_HOME을 참조하고 있어 JAVA_HOME이 11 이상으로 제대로 설정돼 있는지 확인해야 한다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img align=&quot;left&quot; src=&quot;/assets/images/install_java_home.png&quot; /&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img align=&quot;left&quot; src=&quot;/assets/images/check_java_version.png&quot; /&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;keycloak 다운로드 및 압축 해제후 Keycloak 사용할 scheme 생성후 디비연결 정보를 수정한다.&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vi /Users/cheng.lee/tool/keycloak-19.0.1/conf
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;keycloak은 현재 mariadb, mssql, mysql, oracle, postgres를 지원하고 있다.&lt;br /&gt;
+mysql 사용할란다. db-url은 characterEncoding=UTF-8 파라미터 꼭 붙여 줘야한다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/db_config.png&quot; alt=&quot;config db!&quot; title=&quot;config db&quot; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;이제 keycloak을 실행 해준다.&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; /Users/cheng.lee/tool/keycloak-19.0.1/bin
+./kc.sh start-dev
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;http://localhost:8080에 접속하여 관리자계정을 생성해준다.
+&lt;img src=&quot;/assets/images/admin_setup.png&quot; alt=&quot;config db!&quot; title=&quot;config db&quot; /&gt;&lt;/p&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><summary type="html">다운로드: https://www.keycloak.org/downloads</summary></entry><entry><title type="html">Keycloak이란</title><link href="http://localhost:4000/keycloak/2022/07/23/Keycloak-%EC%9D%B4%EB%9E%80.html" rel="alternate" type="text/html" title="Keycloak이란" /><published>2022-07-23T22:49:20+09:00</published><updated>2022-07-23T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/07/23/Keycloak%20%EC%9D%B4%EB%9E%80</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/07/23/Keycloak-%EC%9D%B4%EB%9E%80.html">&lt;p&gt;Keycloak은  Web 어플리케이션 및  Restful  API 서비스의 인증 기능을 제공하는 솔루션이다.&lt;br /&gt;
+JBoss의  JAVA(OpenJDK &amp;gt;= 11) 오픈소스(Apache License2.0) 프로젝트이고 &lt;del&gt;Wildfly&lt;/del&gt;&lt;br /&gt;
+19버전 부터 더 이상  Wildfy 웹서버를 폐기하고 Quarkus라는 새로운 프레임워크를 사용한다.&lt;/p&gt;
+
+&lt;p&gt;홈페이지:  &lt;a href=&quot;https://www.keycloak.org/&quot;&gt;https://www.keycloak.org/&lt;/a&gt;&lt;br /&gt;
+Git: &lt;a href=&quot;https://github.com/keycloak/keycloak/&quot;&gt;https://github.com/keycloak/keycloak&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;주요 기능 :&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;SSO 을 위한 표준  프로토콜 제공
+    &lt;ol&gt;
+      &lt;li&gt;OICD (Oauth 2.0)&lt;/li&gt;
+      &lt;li&gt;SAML 2.0&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Third Party 통한 로그인 기능 제고
+    &lt;ol&gt;
+      &lt;li&gt;Github, Google, Facebook, LinkedIn 등등…&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;MFA 지원(OTP)
+    &lt;ol&gt;
+      &lt;li&gt;Google Authentication, FreeOtp&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;인증서버를 관리 할수 있는 관리자 화면 제공
+    &lt;ol&gt;
+      &lt;li&gt;사용자 관리&lt;/li&gt;
+      &lt;li&gt;그룹 관리&lt;/li&gt;
+      &lt;li&gt;역할 관리&lt;/li&gt;
+      &lt;li&gt;OICD, SAML에 표준에 정의한 클라이언트(Client), 클라이언트 스콥(Client Scope) 관리&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Realm이라는 개념이 존재하여  멀티테넌시 지원&lt;/li&gt;
+  &lt;li&gt;확장기능 제공
+    &lt;ol&gt;
+      &lt;li&gt;Theme를 추가하여로그인 및 회원 가입 화면  커스텀 가능&lt;/li&gt;
+      &lt;li&gt;SPI(Service Provider Interface) 를 추가 개발 하여 인증 서버단 커스텀 기능 추가 가능&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Keycloak을 인증서버로 사용하는 프로젝트들이  쉽게 연동 할수 있게 여러 가지 어댑터 제공
+    &lt;ol&gt;
+      &lt;li&gt;SpringBoot, Tomcat Filter, Javascript 등등…&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Restful API 서버에서 사용하는 인가(Authorization)기능 제공(RBAC)&lt;/li&gt;
+  &lt;li&gt;클라우드 환경에 친화적
+    &lt;ol&gt;
+      &lt;li&gt;내부 캐싱은 Infinispan을 사용하고 있어 자유롭게 Scale In/Out 가능&lt;/li&gt;
+      &lt;li&gt;공식 Docker 이미지 제공&lt;/li&gt;
+      &lt;li&gt;오픈 소스 Helm Chart 프로젝트 존재함.&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><summary type="html">Keycloak은 Web 어플리케이션 및 Restful API 서비스의 인증 기능을 제공하는 솔루션이다. JBoss의 JAVA(OpenJDK &amp;gt;= 11) 오픈소스(Apache License2.0) 프로젝트이고 Wildfly 19버전 부터 더 이상 Wildfy 웹서버를 폐기하고 Quarkus라는 새로운 프레임워크를 사용한다.</summary></entry><entry><title type="html">Hello world! this is my first post.</title><link href="http://localhost:4000/hello/2022/07/20/my-first-post.html" rel="alternate" type="text/html" title="Hello world! this is my first post." /><published>2022-07-20T22:49:20+09:00</published><updated>2022-07-20T22:49:20+09:00</updated><id>http://localhost:4000/hello/2022/07/20/my-first-post</id><content type="html" xml:base="http://localhost:4000/hello/2022/07/20/my-first-post.html">&lt;h1 id=&quot;dillinger&quot;&gt;Dillinger&lt;/h1&gt;
+&lt;h2 id=&quot;the-last-markdown-editor-ever&quot;&gt;&lt;em&gt;The Last Markdown Editor, Ever&lt;/em&gt;&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;[![N&lt;/td&gt;
+      &lt;td&gt;Solid](https://cldup.com/dTxpPi9lDf.thumb.png)](https://nodesource.com/products/nsolid)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://travis-ci.org/joemccann/dillinger&quot;&gt;&lt;img src=&quot;https://travis-ci.org/joemccann/dillinger.svg?branch=master&quot; alt=&quot;Build Status&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Dillinger is a cloud-enabled, mobile-ready, offline-storage compatible,
+AngularJS-powered HTML5 Markdown editor.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Type some Markdown on the left&lt;/li&gt;
+  &lt;li&gt;See HTML in the right&lt;/li&gt;
+  &lt;li&gt;✨Magic ✨&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;features&quot;&gt;Features&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Import a HTML file and watch it magically convert to Markdown&lt;/li&gt;
+  &lt;li&gt;Drag and drop images (requires your Dropbox account be linked)&lt;/li&gt;
+  &lt;li&gt;Import and save files from GitHub, Dropbox, Google Drive and One Drive&lt;/li&gt;
+  &lt;li&gt;Drag and drop markdown and HTML files into Dillinger&lt;/li&gt;
+  &lt;li&gt;Export documents as Markdown, HTML and PDF&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Markdown is a lightweight markup language based on the formatting conventions
+that people naturally use in email.
+As &lt;a href=&quot;http://daringfireball.net&quot;&gt;John Gruber&lt;/a&gt; writes on the &lt;a href=&quot;http://daringfireball.net/projects/markdown/&quot;&gt;Markdown site&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;The overriding design goal for Markdown’s
+formatting syntax is to make it as readable
+as possible. The idea is that a
+Markdown-formatted document should be
+publishable as-is, as plain text, without
+looking like it’s been marked up with tags
+or formatting instructions.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This text you see here is *actually- written in Markdown! To get a feel
+for Markdown’s syntax, type some text into the left window and
+watch the results in the right.&lt;/p&gt;
+
+&lt;h2 id=&quot;tech&quot;&gt;Tech&lt;/h2&gt;
+
+&lt;p&gt;Dillinger uses a number of open source projects to work properly:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://angularjs.org&quot;&gt;AngularJS&lt;/a&gt; - HTML enhanced for web apps!&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://ace.ajax.org&quot;&gt;Ace Editor&lt;/a&gt; - awesome web-based text editor&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/markdown-it/markdown-it&quot;&gt;markdown-it&lt;/a&gt; - Markdown parser done right. Fast and easy to extend.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://twitter.github.com/bootstrap/&quot;&gt;Twitter Bootstrap&lt;/a&gt; - great UI boilerplate for modern web apps&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://nodejs.org&quot;&gt;node.js&lt;/a&gt; - evented I/O for the backend&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://expressjs.com&quot;&gt;Express&lt;/a&gt; - fast node.js network app framework &lt;a href=&quot;http://twitter.com/tjholowaychuk&quot;&gt;@tjholowaychuk&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://gulpjs.com&quot;&gt;Gulp&lt;/a&gt; - the streaming build system&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://breakdance.github.io/breakdance/&quot;&gt;Breakdance&lt;/a&gt; - HTML
+to Markdown converter&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://jquery.com&quot;&gt;jQuery&lt;/a&gt; - duh&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;And of course Dillinger itself is open source with a &lt;a href=&quot;https://github.com/joemccann/dillinger&quot;&gt;public repository&lt;/a&gt;
+ on GitHub.&lt;/p&gt;
+
+&lt;h2 id=&quot;installation&quot;&gt;Installation&lt;/h2&gt;
+
+&lt;p&gt;Dillinger requires &lt;a href=&quot;https://nodejs.org/&quot;&gt;Node.js&lt;/a&gt; v10+ to run.&lt;/p&gt;
+
+&lt;p&gt;Install the dependencies and devDependencies and start the server.&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;dillinger
+npm i
+node app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;For production environments…&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;npm &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--production&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;NODE_ENV&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;production node app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;plugins&quot;&gt;Plugins&lt;/h2&gt;
+
+&lt;p&gt;Dillinger is currently extended with the following plugins.
+Instructions on how to use them in your own application are linked below.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Plugin&lt;/th&gt;
+      &lt;th&gt;README&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Dropbox&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/joemccann/dillinger/tree/master/plugins/dropbox/README.md&quot;&gt;plugins/dropbox/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;GitHub&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/joemccann/dillinger/tree/master/plugins/github/README.md&quot;&gt;plugins/github/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Google Drive&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/joemccann/dillinger/tree/master/plugins/googledrive/README.md&quot;&gt;plugins/googledrive/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;OneDrive&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/joemccann/dillinger/tree/master/plugins/onedrive/README.md&quot;&gt;plugins/onedrive/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Medium&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/joemccann/dillinger/tree/master/plugins/medium/README.md&quot;&gt;plugins/medium/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Google Analytics&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/RahulHP/dillinger/blob/master/plugins/googleanalytics/README.md&quot;&gt;plugins/googleanalytics/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;development&quot;&gt;Development&lt;/h2&gt;
+
+&lt;p&gt;Want to contribute? Great!&lt;/p&gt;
+
+&lt;p&gt;Dillinger uses Gulp + Webpack for fast developing.
+Make a change in your file and instantaneously see your updates!&lt;/p&gt;
+
+&lt;p&gt;Open your favorite Terminal and run these commands.&lt;/p&gt;
+
+&lt;p&gt;First Tab:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;node app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Second Tab:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gulp watch
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;(optional) Third:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;karma &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;building-for-source&quot;&gt;Building for source&lt;/h4&gt;
+
+&lt;p&gt;For production release:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gulp build &lt;span class=&quot;nt&quot;&gt;--prod&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Generating pre-built zip archives for distribution:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gulp build dist &lt;span class=&quot;nt&quot;&gt;--prod&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;docker&quot;&gt;Docker&lt;/h2&gt;
+
+&lt;p&gt;Dillinger is very easy to install and deploy in a Docker container.&lt;/p&gt;
+
+&lt;p&gt;By default, the Docker will expose port 8080, so change this within the
+Dockerfile if necessary. When ready, simply use the Dockerfile to
+build the image.&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;dillinger
+docker build &lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt; &amp;lt;youruser&amp;gt;/dillinger:&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.json.version&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This will create the dillinger image and pull in the necessary dependencies.
+Be sure to swap out &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;${package.json.version}&lt;/code&gt; with the actual
+version of Dillinger.&lt;/p&gt;
+
+&lt;p&gt;Once done, run the Docker image and map the port to whatever you wish on
+your host. In this example, we simply map port 8000 of the host to
+port 8080 of the Docker (or whatever port was exposed in the Dockerfile):&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;docker run &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 8000:8080 &lt;span class=&quot;nt&quot;&gt;--restart&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;always &lt;span class=&quot;nt&quot;&gt;--cap-add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;SYS_ADMIN &lt;span class=&quot;nt&quot;&gt;--name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;dillinger &amp;lt;youruser&amp;gt;/dillinger:&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.json.version&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Note: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--capt-add=SYS-ADMIN&lt;/code&gt; is required for PDF rendering.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Verify the deployment by navigating to your server address in
+your preferred browser.&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;127.0.0.1:8000
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;license&quot;&gt;License&lt;/h2&gt;
+
+&lt;p&gt;MIT&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Free Software, Hell Yeah!&lt;/strong&gt;&lt;/p&gt;</content><author><name></name></author><category term="Hello" /><summary type="html">Dillinger The Last Markdown Editor, Ever [![N Solid](https://cldup.com/dTxpPi9lDf.thumb.png)](https://nodesource.com/products/nsolid) Dillinger is a cloud-enabled, mobile-ready, offline-storage compatible, AngularJS-powered HTML5 Markdown editor. Type some Markdown on the left See HTML in the right ✨Magic ✨ Features Import a HTML file and watch it magically convert to Markdown Drag and drop images (requires your Dropbox account be linked) Import and save files from GitHub, Dropbox, Google Drive and One Drive Drag and drop markdown and HTML files into Dillinger Export documents as Markdown, HTML and PDF Markdown is a lightweight markup language based on the formatting conventions that people naturally use in email. As John Gruber writes on the Markdown site The overriding design goal for Markdown’s formatting syntax is to make it as readable as possible. The idea is that a Markdown-formatted document should be publishable as-is, as plain text, without looking like it’s been marked up with tags or formatting instructions. This text you see here is *actually- written in Markdown! To get a feel for Markdown’s syntax, type some text into the left window and watch the results in the right. Tech Dillinger uses a number of open source projects to work properly: AngularJS - HTML enhanced for web apps! Ace Editor - awesome web-based text editor markdown-it - Markdown parser done right. Fast and easy to extend. Twitter Bootstrap - great UI boilerplate for modern web apps node.js - evented I/O for the backend Express - fast node.js network app framework @tjholowaychuk Gulp - the streaming build system Breakdance - HTML to Markdown converter jQuery - duh And of course Dillinger itself is open source with a public repository on GitHub. Installation Dillinger requires Node.js v10+ to run. Install the dependencies and devDependencies and start the server. cd dillinger npm i node app For production environments… npm install --production NODE_ENV=production node app Plugins Dillinger is currently extended with the following plugins. Instructions on how to use them in your own application are linked below. Plugin README Dropbox plugins/dropbox/README.md GitHub plugins/github/README.md Google Drive plugins/googledrive/README.md OneDrive plugins/onedrive/README.md Medium plugins/medium/README.md Google Analytics plugins/googleanalytics/README.md Development Want to contribute? Great! Dillinger uses Gulp + Webpack for fast developing. Make a change in your file and instantaneously see your updates! Open your favorite Terminal and run these commands. First Tab: node app Second Tab: gulp watch (optional) Third: karma test Building for source For production release: gulp build --prod Generating pre-built zip archives for distribution: gulp build dist --prod Docker Dillinger is very easy to install and deploy in a Docker container. By default, the Docker will expose port 8080, so change this within the Dockerfile if necessary. When ready, simply use the Dockerfile to build the image. cd dillinger docker build -t &amp;lt;youruser&amp;gt;/dillinger:${package.json.version} . This will create the dillinger image and pull in the necessary dependencies. Be sure to swap out ${package.json.version} with the actual version of Dillinger. Once done, run the Docker image and map the port to whatever you wish on your host. In this example, we simply map port 8000 of the host to port 8080 of the Docker (or whatever port was exposed in the Dockerfile): docker run -d -p 8000:8080 --restart=always --cap-add=SYS_ADMIN --name=dillinger &amp;lt;youruser&amp;gt;/dillinger:${package.json.version} Note: --capt-add=SYS-ADMIN is required for PDF rendering. Verify the deployment by navigating to your server address in your preferred browser. 127.0.0.1:8000 License MIT Free Software, Hell Yeah!</summary></entry></feed>
