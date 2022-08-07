@@ -20,7 +20,7 @@
 Website: https://github.com/ooopsy/ooopsy.github.io
 
 title: Try to keep code clean
-email: jintian8899@gmail.com
+email: oopsy1988@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   어중간하게 잘하는 개발자.
 baseurl: "" # the subpath of your site, e.g. /blog
@@ -35,10 +35,12 @@ plugins:
 yat:
   date_format: "%Y %m %d"
 
+google_analytics: G-QK5W7ZVPTN
+
 defaults:
   home:
     heading: "어중간하게 잘하는 개발자."
-    subheading: "jintian8899@gmail.com"
+    subheading: "oopsy1988@gmail.com"
     banner: "/assets/banner/my-banner.jpeg"
 
 # Exclude from processing.
