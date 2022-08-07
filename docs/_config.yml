@@ -45,6 +45,15 @@ defaults:
     subheading: "oopsy1988@gmail.com"
     banner: "/assets/banner/my-banner.jpeg"
 
+utterances:
+   repo: "ooopsy/ooopsy.github.io"
+   issue_term: "title"
+   label: "Comments"
+   theme: "github-light"
+   follow_site_theme: false
+
+
+
 # Exclude from processing.
 # The following items will not be processed, by default.
 # Any item listed under the `exclude:` key here will be automatically added to
