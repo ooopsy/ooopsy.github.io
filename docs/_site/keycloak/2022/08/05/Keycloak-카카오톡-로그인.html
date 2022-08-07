@@ -8,8 +8,8 @@
 <meta name="generator" content="Jekyll v3.9.0" />
 <meta property="og:title" content="Keycloak 카카오 로그인 연동" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="카카오 로그인 22년 3월 부터 OIDC를 지원하게 돼어 keycloak과 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다." />
-<meta property="og:description" content="카카오 로그인 22년 3월 부터 OIDC를 지원하게 돼어 keycloak과 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다." />
+<meta name="description" content="카카오 로그인 22년 3월부터 OIDC를 지원하게 돼어 keycloak과 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다." />
+<meta property="og:description" content="카카오 로그인 22년 3월부터 OIDC를 지원하게 돼어 keycloak과 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다." />
 <link rel="canonical" href="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" />
 <meta property="og:url" content="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" />
 <meta property="og:site_name" content="Try to keep code clean" />
@@ -18,9 +18,9 @@
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Keycloak 카카오 로그인 연동" />
 <script type="application/ld+json">
-{"url":"http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html"},"headline":"Keycloak 카카오 로그인 연동","dateModified":"2022-08-05T22:49:20+09:00","datePublished":"2022-08-05T22:49:20+09:00","description":"카카오 로그인 22년 3월 부터 OIDC를 지원하게 돼어 keycloak과 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다.","@type":"BlogPosting","@context":"https://schema.org"}</script>
+{"description":"카카오 로그인 22년 3월부터 OIDC를 지원하게 돼어 keycloak과 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다.","url":"http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html","headline":"Keycloak 카카오 로그인 연동","dateModified":"2022-08-05T22:49:20+09:00","datePublished":"2022-08-05T22:49:20+09:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html"},"@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
-<link rel="shortcut icon" href="">
+<link rel="shortcut icon" href="/assets/ico.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
   <link rel="stylesheet" href="/assets/css/main.css">
@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   <div class="wrapper">
     <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
-  <img class="site-favicon" title="Try to keep code clean" src="" onerror="this.style.display='none'">
+  <img class="site-favicon" title="Try to keep code clean" src="/assets/ico.png" onerror="this.style.display='none'">
   Try to keep code clean
 </a>
 </span><nav class="site-nav">
@@ -656,15 +656,15 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     <div class="post-content e-content" itemprop="articleBody">
 
-      <p>카카오 로그인 22년 3월 부터 OIDC를 지원하게 돼어 keycloak과<br />
+      <p>카카오 로그인 22년 3월부터 OIDC를 지원하게 돼어 keycloak과<br />
 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다.</p>
 
 <hr />
 <p>카카오 개발자 센터에서 앱을 먼저 생성한다.<br />
 홈페이지: <a href="https://developers.kakao.com/">https://developers.kakao.com</a></p>
 
-<p>비즈 앱 생성 안해도 돼지만   카카오 아이디 외  토큰에 이메일, 닉네임 등 다른<br />
-정보를 받을서 없어 사업자 등록 번호로 비즈 앱을 생성해준다.</p>
+<p>비즈 앱 생성 안해도 돼지만 카카오 아이디 외  토큰에 이메일, 닉네임 등 다른<br />
+정보를 받을 수가 없어 사업자 등록 번호로 비즈 앱을 생성해준다.</p>
 <blockquote>
   <p><img src="/assets/images/kakao//bizapp.png" alt="bizapp!" title="bizapp" /></p>
 </blockquote>
@@ -679,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
   <p><img src="/assets/images/kakao//agree.png" alt="agree!" title="agree" /></p>
 </blockquote>
 
-<p><br /><br /><br />키클락 관리자 콘솔에서 Identity providers -&gt; OpenID Connect v1.0을 선택한다</p>
+<p><br /><br /><br />Keycloak 관리자 콘솔에서 Identity providers -&gt; OpenID Connect v1.0을 선택한다</p>
 <blockquote>
   <p><img src="/assets/images/kakao//keycloak_idp.png" alt="chose keycloak menu!" title="chose keycloak menu" /></p>
 </blockquote>
@@ -716,7 +716,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
   <p><img src="/assets/images/kakao/login_page.png" alt="kakao redirect_url!" /></p>
 </blockquote>
 
-<p><br /><br /><br /> 앞서 동의항목에서 추가로 활성화한 필들을 사용자 정보에 저장하고  싶은면<br />
+<p><br /><br /><br /> 앞서 동의항목에서 추가로 활성화한 필드들을 사용자 정보에 저장하고  싶으면<br />
 Mappers에 등록해 준다.</p>
 <blockquote>
   <p><img src="/assets/images/kakao/mappers.png" alt="kakao redirect_url!" /></p>
@@ -744,7 +744,7 @@ User Attribute에 추가됀것을 확인할 수 있다.</p>
 <div class="post-nav"><a class="previous" href="/keycloak/2022/08/04/Keycloak-%EB%A1%9C%EC%BB%AC-%EC%84%A4%EC%B9%98.html" title="Keycloak 로컬 설치">Keycloak 로컬 설치</a><span></span></div><div class="post-related">
       <div>Related Articles</div>
       <ul>
-        <li><a class="post-link" href="/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" title="">Keycloak 카카오 로그인 연동</a></li><li><a class="post-link" href="/keycloak/2022/08/04/Keycloak-%EB%A1%9C%EC%BB%AC-%EC%84%A4%EC%B9%98.html" title="">Keycloak 로컬 설치</a></li><li><a class="post-link" href="/hello/2022/07/20/my-first-post.html" title="">Hello world! this is my first post.</a></li><li><a class="post-link" href="/keycloak/2022/07/23/Keycloak-%EC%9D%B4%EB%9E%80.html" title="">Keycloak이란</a></li></ul>
+        <li><a class="post-link" href="/keycloak/2022/07/23/Keycloak-%EC%9D%B4%EB%9E%80.html" title="">Keycloak이란</a></li><li><a class="post-link" href="/hello/2022/07/20/my-first-post.html" title="">Hello world! this is my first post.</a></li><li><a class="post-link" href="/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" title="">Keycloak 카카오 로그인 연동</a></li><li><a class="post-link" href="/keycloak/2022/08/04/Keycloak-%EB%A1%9C%EC%BB%AC-%EC%84%A4%EC%B9%98.html" title="">Keycloak 로컬 설치</a></li></ul>
     </div><div class="post-comments"></div></section>
 </div>
 
