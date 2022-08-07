@@ -42,7 +42,7 @@ google_analytics: G-QK5W7ZVPTN
 defaults:
   home:
     heading: "어중간하게 잘하는 개발자."
-    subheading: "oopsy1988@gmail.com"
+    subheading: "oopsy1988@gmail.com" 
     banner: "/assets/banner/my-banner.jpeg"
 
 utterances:
@@ -52,7 +52,9 @@ utterances:
    theme: "github-light"
    follow_site_theme: true
 
-
+socials:
+  linkedin: 성-이-ab036b221
+  github: ooopsy
 
 # Exclude from processing.
 # The following items will not be processed, by default.
