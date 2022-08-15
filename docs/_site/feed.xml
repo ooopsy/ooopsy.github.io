@@ -1,4 +1,362 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-08-07T20:15:15+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">Keycloak 카카오 로그인 연동</title><link href="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" rel="alternate" type="text/html" title="Keycloak 카카오 로그인 연동" /><published>2022-08-05T22:49:20+09:00</published><updated>2022-08-05T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/05/Keycloak%20%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1%20%EB%A1%9C%EA%B7%B8%EC%9D%B8</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html">&lt;p&gt;카카오 로그인 22년 3월부터 OIDC를 지원하게 돼어 keycloak과&lt;br /&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-08-16T00:55:07+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">Keycloak EKS 배포(Helm)</title><link href="http://localhost:4000/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html" rel="alternate" type="text/html" title="Keycloak EKS 배포(Helm)" /><published>2022-08-13T22:49:20+09:00</published><updated>2022-08-13T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/13/Keycloak%20EKS%20%EB%B0%B0%ED%8F%AC(Helm)</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html">&lt;p&gt;Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus&lt;br /&gt;
+사용하지만 사용하는 오픈소스 Helm Chart는  17 까지만 지원하고 있어&lt;br /&gt;
+WildFy 버전 배포 진행. 
+&lt;br /&gt;
+Helm Chart: &lt;a href=&quot;https://github.com/codecentric/helm-charts/tree/master/charts/keycloak/&quot;&gt;https://github.com/codecentric/helm-charts/tree/master/charts/keycloak&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;사전-준비-mac&quot;&gt;사전 준비 (Mac)&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;kubectl 설치
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;kubectl
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;helm 설치
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;helm
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;aws cli 설치
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;aws iam authenticator 설치
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;aws-iam-authenticator
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;aws-관리자-계정-생성&quot;&gt;AWS 관리자 계정 생성&lt;/h2&gt;
+&lt;p&gt;IAM -&amp;gt; Users -&amp;gt; Add users   Access Key도 생성 해준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add_user.png&quot; alt=&quot;add user!&quot; title=&quot;add user&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;EKS 사용시 여러가지 권한이 필요하여 관리자 권한을 부여한다. &lt;br /&gt;
+아님 중간중간 권한이 부족하다고 오류난다.&lt;br /&gt;
+이하 모든 작업들은 새로 생성한 관리자 권한 계정으로 진행한다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add_user_admin.png&quot; alt=&quot;add user admin!&quot; title=&quot;add user admin&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt; Access key ID, Secret access key를 저장해둔다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add_user_secret.png&quot; alt=&quot;add user secret!&quot; title=&quot;add user secret&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;eks용--cluster-service-role-생성&quot;&gt;EKS용  Cluster Service Role 생성&lt;/h2&gt;
+&lt;p&gt;EKS용 Cluster Service Role을 생성 해 준다.   가이드: &lt;a href=&quot;https://docs.aws.amazon.com/eks/latest/userguide/service_IAM_role.html#create-service-role&quot;&gt;create-service-role&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add_eks_role.png&quot; alt=&quot;add eks role&quot; title=&quot;add eks role&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;eks-worker-node-role-생성&quot;&gt;EKS Worker Node Role 생성&lt;/h2&gt;
+&lt;p&gt;EKS Worker Node Role을  생성해 준다.   가이드: &lt;a href=&quot;https://docs.aws.amazon.com/eks/latest/userguide/create-node-role.html#create-worker-node-role&quot;&gt;Amazon EKS node IAM role&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/workerNode-role.png&quot; alt=&quot;add eks role&quot; title=&quot;add eks role&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;vpc-네트워크-설정&quot;&gt;VPC 네트워크 설정&lt;/h2&gt;
+&lt;h3 id=&quot;internet-gateway-생성&quot;&gt;Internet gateway 생성&lt;/h3&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/internetgateway.png&quot; alt=&quot;internetgateway&quot; title=&quot;internet gateway&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;privatepublic-route-table-생성&quot;&gt;Private/Public Route table 생성&lt;/h3&gt;
+
+&lt;p&gt;private route 생성&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/private-route.png&quot; alt=&quot;private route&quot; title=&quot;private route&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;public route 생성&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/public-route.png&quot; alt=&quot;public route&quot; title=&quot;public route&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;public route에 방금 생성한  Internet GateWay 추가&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/edit-public-route.png&quot; alt=&quot;edit public route&quot; title=&quot;edit public route&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/attach-gateway.png&quot; alt=&quot;attach gateway&quot; title=&quot;attach gateway&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;privatepublic-용--subnet-생성&quot;&gt;Private/Public 용  Subnet 생성&lt;/h3&gt;
+
+&lt;p&gt;예: VPC  IPv4  CIDR가 171.30.0.0/16  일때&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;route table&lt;/th&gt;
+      &lt;th&gt;subnet name&lt;/th&gt;
+      &lt;th&gt;Ipv4 CIDR&lt;/th&gt;
+      &lt;th&gt;Availability Zone&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;MyPrivateRouteTable&lt;/td&gt;
+      &lt;td&gt;MyPrivateSubnet-01&lt;/td&gt;
+      &lt;td&gt;171.30.1.0/24&lt;/td&gt;
+      &lt;td&gt;ap-northear-2a&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;MyPrivateRouteTable&lt;/td&gt;
+      &lt;td&gt;MyPrivateSubnet-02&lt;/td&gt;
+      &lt;td&gt;171.30.2.0/24&lt;/td&gt;
+      &lt;td&gt;ap-northear-2b&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;MyPublicRouteTable&lt;/td&gt;
+      &lt;td&gt;MyPublicSubnet-01&lt;/td&gt;
+      &lt;td&gt;171.30.3.0/24&lt;/td&gt;
+      &lt;td&gt;ap-northear-2a&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;MyPublicRouteTable&lt;/td&gt;
+      &lt;td&gt;MyPublicSubnet-04&lt;/td&gt;
+      &lt;td&gt;171.30.4.0/24&lt;/td&gt;
+      &lt;td&gt;ap-northear-2b&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h4 id=&quot;private-subnet-생성&quot;&gt;private subnet 생성&lt;/h4&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/private-subnet.png&quot; alt=&quot;private subnet&quot; title=&quot;private subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;public-subnet-생성&quot;&gt;public subnet 생성&lt;/h4&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/public-subnet.png&quot; alt=&quot;public subnet&quot; title=&quot;public subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;나중에 workNode 생성할때 public subnet에  EC2를 생성하기에&lt;br /&gt;
+자동 아이피 할당을 꼭 enable 해야 한다. 아님 오류 발생.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/enable-auto-ip.png&quot; alt=&quot;enable auto ip&quot; title=&quot;enable auto ip&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;subnet-route-매핑&quot;&gt;subnet-route 매핑&lt;/h4&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/mapping-route.png&quot; alt=&quot;mapping route&quot; title=&quot;mapping route&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;security-group-생성&quot;&gt;Security Group 생성&lt;/h2&gt;
+
+&lt;p&gt;EKS 인터넷 접근가능하게 해야 하고  DB는 VPC내에서만 접근 가능하게&lt;br /&gt;
+ Security Group을 생성한다.&lt;/p&gt;
+
+&lt;h3 id=&quot;eks용-퍼블릭-security-group-생성&quot;&gt;EKS용 퍼블릭 Security Group 생성&lt;/h3&gt;
+&lt;p&gt;참고: &lt;a href=&quot;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/sec-group-reqs.html&quot;&gt;Amazon EKS 보안 그룹 요구 사항 및 고려 사항&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add_eks_security_group.png&quot; alt=&quot;eks public security group&quot; title=&quot;eks public security group&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;rds-용-security-group-생성&quot;&gt;RDS 용 Security Group 생성&lt;/h3&gt;
+&lt;p&gt;EKS 노드는  public subnet에 배치돼고 rds는 private subnet에 배치돼기 때문에 
+EKS 노드 RDS에 접근할수 있게 public subnet 아이피 3306포트만 뚫어 준다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/rds-security-group.png&quot; alt=&quot;rds security group&quot; title=&quot;rds security group&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;rds-생성&quot;&gt;RDS 생성&lt;/h2&gt;
+&lt;h3 id=&quot;subnet-group-생성&quot;&gt;Subnet Group 생성&lt;/h3&gt;
+&lt;p&gt;RDS 생성 때 필요한 SubnetGroup을 생성해 준다&lt;br /&gt;
+앞서 ap-northear-2a, ap-northear-2b 에 Private subnet group  생성 하기 때문에 선택해 준다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/subnet-group.png&quot; alt=&quot;subnet group&quot; title=&quot;subnet group&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;mysql-instance-생성&quot;&gt;Mysql Instance 생성&lt;/h3&gt;
+&lt;p&gt;DB 관라자 계정 및 스팩 선택 후&lt;br /&gt;
+생성할때 앞서 만든 Security Group 및 Subnet Group을 선택해준다&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/create-rds.png&quot; alt=&quot;create rds&quot; title=&quot;create rds&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;keycloak-tablespace-생성&quot;&gt;Keycloak Tablespace 생성&lt;/h3&gt;
+&lt;p&gt;RDS private subnet에 생성했기에 터널링이 필요하다.&lt;br /&gt;
+public subnet에 임시로 EC2 인스턴스 생성후 pem key 생성.&lt;br /&gt;
+pem key를 이용하여 터널링 방식으로  DB에 접근하여  schema 생성&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/tunnul.png&quot; alt=&quot;터널링&quot; title=&quot;터널링&quot; /&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;img src=&quot;/assets/images/eks/create-schema.png&quot; alt=&quot;터널링&quot; title=&quot;터널링&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;eks-생성&quot;&gt;EKS 생성&lt;/h2&gt;
+&lt;p&gt;앞서 생성한 Cluster Service Role를 선택해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/chosee-eks-cluster-role.png&quot; alt=&quot;chosee-eks-cluster-role.png&quot; title=&quot;chosee-eks-cluster-role&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;앞서 생성한  public subnet을 선택해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/eks-select-public-subnet.png&quot; alt=&quot;eks-select-public-subnet.png&quot; title=&quot;eks-select-public-subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;앞서 생성한  public security group을 선택해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/eks-select-public-security-group.png&quot; alt=&quot;eks-select-public-security-group&quot; title=&quot;eks-select-public-security-group&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;node-group을-생성한다&quot;&gt;Node group을 생성한다.&lt;/h3&gt;
+&lt;p&gt;앞서 생성한 Worker Node Role을 선택해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/select-node-group-role.png&quot; alt=&quot;select-node-group-role&quot; title=&quot;select-node-group-role&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;앞서 생성한  public subnet을 선택해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/node-select-public-subnet.png&quot; alt=&quot;node-select-public-subnet&quot; title=&quot;node-select-public-subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;keycloak-helm-배포&quot;&gt;Keycloak Helm 배포&lt;/h2&gt;
+&lt;h3 id=&quot;aws-cli-계정-설정&quot;&gt;aws cli 계정 설정&lt;/h3&gt;
+&lt;p&gt;aws configure 명령어 실행후&lt;br /&gt;
+앞서 저장한 관리자 계정 Access key ID, Secret access key를 입력한다.&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;aws configure
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;aws sts get-caller-identity &lt;span class=&quot;c&quot;&gt;#적용됐는지 확인 &lt;/span&gt;
+aws eks update-kubeconfig &lt;span class=&quot;nt&quot;&gt;--name&lt;/span&gt; MyEks &lt;span class=&quot;nt&quot;&gt;--region&lt;/span&gt; ap-northeast-2  &lt;span class=&quot;c&quot;&gt;# .kube/config  파일 업데이트 해줌&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;db-연결-정보-설정&quot;&gt;DB 연결 정보 설정&lt;/h3&gt;
+&lt;p&gt;DB 연결정보, 포트, 스크마, 계정명을 configmap에 저장한다.&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl apply &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; configmap.yml 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;db.host&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;RDS앤드포인트&lt;/span&gt; 
+  &lt;span class=&quot;s&quot;&gt;db.port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;3306&quot;&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;db.schema&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;keycloak&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;db.user&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;RDS계정아이디&lt;/span&gt; 
+&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ConfigMap&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;annotations&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;creationTimestamp&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;2022-08-15T01:09:57Z&quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;my-config&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;namespace&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;default&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;resourceVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;13667&quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;daf633e8-5b82-4a1a-b09d-b8b11a8aa025&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;DB  계정 비밀번호 secret에 저장한다.&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl create secret generic my-secret &lt;span class=&quot;nt&quot;&gt;--from-literal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;db.password&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;비밀번호
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;helm-생성&quot;&gt;Helm 생성&lt;/h3&gt;
+&lt;p&gt;Helm 생성&lt;br /&gt;
+templates 하위에 있는 파일들 아직 안쓰니까 전부 날린다.&lt;br /&gt;
+Keycloak 오픈소스 Helm Chart 저장소 추가&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm repo add codecentric https://codecentric.github.io/helm-charts &lt;span class=&quot;c&quot;&gt;# add open source helm chart repository&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm create my-keycloak
+&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;my-keycloak 
+vi Chart.yaml 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;
+Chart.yaml에 keycloak dependency 추가&lt;/p&gt;
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v2&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;my-keycloak&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;A Helm chart for Kubernetes&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;application&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;0.1.0&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;appVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;1.16.0&quot;&lt;/span&gt;
+
+&lt;span class=&quot;na&quot;&gt;dependencies&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;keycloak&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;18.3.0&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;repository&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@codecentric&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;values.yaml 정보 입력 service.type  LoadBalancer로 지정&lt;/p&gt;
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;fullname&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;my-keycloak&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;cli&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;ingress&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;postgresql&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;service&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;LoadBalancer&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;80&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;extraEnv&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;pi&quot;&gt;|&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_VENDOR&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;value: mysql&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_ADDR&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;valueFrom:&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;configMapKeyRef:&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;name: my-config           &lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;key: db.host&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_PORT&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;valueFrom:&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;configMapKeyRef:&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;name: my-config           &lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;key: db.port&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_DATABASE&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;valueFrom:&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;configMapKeyRef:&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;name: my-config           &lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;key: db.schema&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_USER&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;valueFrom:&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;configMapKeyRef:&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;name: my-config           &lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;key: db.user&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_PASSWORD&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;valueFrom:&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;secretKeyRef:&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;name: my-secret&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;key: db.password&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;optional: false &lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;dependency 빌드&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm dependency build
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&quot;helm-install&quot;&gt;Helm install&lt;/h3&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;my-keycloak my-keycloak
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;도메인-설정&quot;&gt;도메인 설정&lt;/h2&gt;
+&lt;p&gt;route 53 A record에 EKS 생성해준 ELB Endpoint 매핑 설정해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/route53-elb.png&quot; alt=&quot;route53-elb&quot; title=&quot;route53-elb&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;elb-용-acm-생성&quot;&gt;ELB 용 ACM 생성&lt;/h3&gt;
+&lt;p&gt;ACM 에서 인증서 추가&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add-acm.png&quot; alt=&quot;add-acm&quot; title=&quot;add-acm&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;route 53애 인증서 Validation CNAME 레코드 추가&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/cname-value.png&quot; alt=&quot;cname-value&quot; title=&quot;cname-value&quot; /&gt; &lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;img src=&quot;/assets/images/eks/add-c-record.png&quot; alt=&quot;add-c-record&quot; title=&quot;add-c-record&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;ELB에 인증서를 걸어 준다&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add-1.png&quot; alt=&quot;add-1&quot; title=&quot;add-1&quot; /&gt; &lt;br /&gt;
+&lt;img src=&quot;/assets/images/eks/add-2.png&quot; alt=&quot;add-2&quot; title=&quot;add-2&quot; /&gt; &lt;br /&gt;
+&lt;img src=&quot;/assets/images/eks/add-3.png&quot; alt=&quot;add-3&quot; title=&quot;add-3&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;To Be continue…..&lt;/p&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><category term="키클락" /><category term="EKS" /><category term="Helm" /><summary type="html">Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus 사용하지만 사용하는 오픈소스 Helm Chart는 17 까지만 지원하고 있어 WildFy 버전 배포 진행. Helm Chart: https://github.com/codecentric/helm-charts/tree/master/charts/keycloak</summary></entry><entry><title type="html">Keycloak 카카오 로그인 연동</title><link href="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" rel="alternate" type="text/html" title="Keycloak 카카오 로그인 연동" /><published>2022-08-05T22:49:20+09:00</published><updated>2022-08-05T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/05/Keycloak%20%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1%20%EB%A1%9C%EA%B7%B8%EC%9D%B8</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html">&lt;p&gt;카카오 로그인 22년 3월부터 OIDC를 지원하게 돼어 keycloak과&lt;br /&gt;
 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다.&lt;/p&gt;
 
 &lt;hr /&gt;
@@ -43,7 +401,8 @@
 &lt;/blockquote&gt;
 
 &lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; Client ID에  카카오 앱키 REST API 키를 입력한다.&lt;br /&gt;
-카카오는 secret key를 사용하지 않기에 Client Secret는 의미로 입력하면 됀다.&lt;br /&gt;
+카카오는 secret key는 필수가 아님으로 Client Secret는 의미로 입력하면 됀다.&lt;br /&gt;
+필요하다면 보안 메뉴에서 Client secret 코드를 생성할 수 있다.
 입력 완료후 저장하면 해당 Realm 관리자 콘솔에 접속하여 카카오 로그인 버튼이 생성됀거를 확인 할수 있다.&lt;/p&gt;
 
 &lt;blockquote&gt;
