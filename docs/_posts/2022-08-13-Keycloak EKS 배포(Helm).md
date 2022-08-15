@@ -296,8 +296,15 @@ ELB에 인증서를 걸어 준다
 > ![add-3](/assets/images/eks/add-3.png "add-3")   
 
 
+Keycloak master 사용자 초기화 
+```sh
+kubectl exec -it my-keycloak-0 -- /bin/bash # POD 진입
+/opt/jboss/keycloak/bin/add-user-keycloak.sh -r master -u oopsy1988 -p 비밀번호   # master 사용자 추가 
+/opt/jboss/keycloak/bin/jboss-cli.sh --connect command=:reload  # 서버 재시작 
+```
 
-To Be continue...........
+
+
 
 
 
