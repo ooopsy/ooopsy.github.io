@@ -296,6 +296,7 @@ ELB에 인증서를 걸어 준다
 > ![add-3](/assets/images/eks/add-3.png "add-3")   
 
 
+## 서버 초기화 
 Keycloak master 사용자 초기화 
 ```sh
 kubectl exec -it my-keycloak-0 -- /bin/bash # POD 진입
