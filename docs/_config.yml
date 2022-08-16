@@ -41,7 +41,7 @@ plugins:
 yat:
   date_format: "%Y %m %d"
 
-google_analytics: G-QK5W7ZVPTN
+google_analytics: G-VWTNZNGPP6
 
 defaults:
   home:
