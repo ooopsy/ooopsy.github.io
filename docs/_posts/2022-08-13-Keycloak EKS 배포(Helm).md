@@ -301,7 +301,7 @@ Keycloak master 사용자 초기화
 ```sh
 kubectl exec -it my-keycloak-0 -- /bin/bash # POD 진입
 /opt/jboss/keycloak/bin/add-user-keycloak.sh -r master -u oopsy1988 -p 비밀번호   # master 사용자 추가 
-/opt/jboss/keycloak/bin/jboss-cli.sh --connect command=:reload  # 서버 재시작 
+/opt/jboss/keycloak/bin/jboss-cli.sh --connect command=:reload  # 서버 재시작  
 ```  
 
 
