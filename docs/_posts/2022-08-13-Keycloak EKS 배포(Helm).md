@@ -20,7 +20,7 @@ Helm Chart: [https://github.com/codecentric/helm-charts/tree/master/charts/keycl
 ``` sh
 brew install kubectl
 ```
-2. helm 설치  
+2. helm 설치    
 ``` sh
 brew install helm
 ```
