@@ -28,7 +28,7 @@ brew install helm
 ``` sh
 https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 ```
-4. aws iam authenticator 설치 
+4. aws iam authenticator 설치  
 ``` sh
 brew install aws-iam-authenticator 
 ```
