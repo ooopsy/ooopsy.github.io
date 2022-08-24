@@ -1,14 +1,14 @@
 ---
 layout: post
-title:  "Keycloak EKS Ingress 적용"
-date:   2022-08-23 22:49:20 +0900
+title:  "Keycloak EKS 배포(Helm)"
+date:   2022-08-13 22:49:20 +0900
 categories: Keycloak
-tags: SSO 통합인증 Keycloak 키클락 EKS Ingress
+tags: SSO 통합인증 Keycloak 키클락 EKS Helm
 ---
 
-
-참조: [https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html](https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html)
-    
+Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus  
+사용하지만 사용하는 오픈소스 Helm Chart는  17 까지만 지원하고 있어  
+WildFy 버전 배포 진행. 
 <br>
 Helm Chart: [https://github.com/codecentric/helm-charts/tree/master/charts/keycloak](https://github.com/codecentric/helm-charts/tree/master/charts/keycloak/)
 
@@ -293,7 +293,7 @@ route 53애 인증서 Validation CNAME 레코드 추가
 ELB에 인증서를 걸어 준다   
 > ![add-1](/assets/images/eks/add-1.png "add-1")   
 > ![add-2](/assets/images/eks/add-2.png "add-2")   
-> ![add-3](/assets/images/eks/add-3.png "add-3")   
+> ![add-3](/assets/images/eks/add-3.png "add-3")    
 
 
 ## 서버 초기화 

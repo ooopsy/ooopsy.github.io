@@ -1,6 +1,160 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-08-24T22:57:24+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">Keycloak EKS Ingress 적용</title><link href="http://localhost:4000/keycloak/2022/08/23/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html" rel="alternate" type="text/html" title="Keycloak EKS Ingress 적용" /><published>2022-08-23T22:49:20+09:00</published><updated>2022-08-23T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/23/Keycloak%20EKS%20%EB%B0%B0%ED%8F%AC(Helm)</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/23/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html">&lt;p&gt;참조: &lt;a href=&quot;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&quot;&gt;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&lt;/a&gt;&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-08-24T23:04:53+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">Keycloak EKS Ingress 적용</title><link href="http://localhost:4000/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html" rel="alternate" type="text/html" title="Keycloak EKS Ingress 적용" /><published>2022-08-23T22:49:20+09:00</published><updated>2022-08-23T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/23/Keycloak%20EKS%20Ingress%20%EC%A0%81%EC%9A%A9</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html">&lt;p&gt;참조: &lt;a href=&quot;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&quot;&gt;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&lt;/a&gt;&lt;/p&gt;
 
+&lt;h2 id=&quot;사전-준비-사항&quot;&gt;사전 준비 사항&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;eksctl 설치
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brew tap weaveworks/tap
+brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;weaveworks/tap/eksctl
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;subnet-tag-추가&quot;&gt;subnet tag 추가&lt;/h2&gt;
+&lt;p&gt;Keycloak을 외부에서 사용하기에 Eks의 worker node는 사용하는  Subnet은 Public접근 허용해야 하며 &lt;br /&gt;
+ALB를 생성할수 있게  Subnet은 AWS에 정의한 Tag가 추가돼어야 한다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubernetes.io/role/elb
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/ingress/subget_tag.png&quot; alt=&quot;tag subnet!&quot; title=&quot;tag subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;iam-oidc-자격-증명-공급자&quot;&gt;IAM OIDC 자격 증명 공급자&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code&gt;
+eksctl utils associate-iam-oidc-provider --cluster &lt;mark&gt;MyEks&lt;/mark&gt; --approve
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;aws-load-balancer-controller-추가-기능-설치&quot;&gt;AWS Load Balancer Controller 추가 기능 설치&lt;/h2&gt;
+
+&lt;p&gt;AWS Load Balancer Controller의 IAM 정책을 다운로드&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;curl &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.3/docs/install/iam_policy.json
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;다운로드한 정책 JSON 파일 적용&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;aws iam create-policy &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;--policy-name&lt;/span&gt; AWSLoadBalancerControllerIAMPolicy &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;--policy-document&lt;/span&gt; iam_policy.json
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;클러스터의 OIDC 공급자 URL을 확인&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+aws eks describe-cluster --name &lt;mark&gt;MyEks&lt;/mark&gt; --query &quot;cluster.identity.oidc.issuer&quot; --output text
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;&lt;br /&gt;
+출력한 메세지 /id/뒤  &lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;를 복사한다.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+oidc.eks.ap-northeast-2.amazonaws.com/id/&lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;
+&lt;mark style=&quot;background-color: orange&quot;&gt;1111122223333&lt;/mark&gt;을 자신의  VPC ID로 바꿔주고 노락색으로 표시한부분 위에서 복사한 내용을 붙여준다.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+cat &amp;gt;load-balancer-role-trust-policy.json &amp;lt;&amp;lt;EOF
+{
+    &quot;Version&quot;: &quot;2012-10-17&quot;,
+    &quot;Statement&quot;: [
+        {
+            &quot;Effect&quot;: &quot;Allow&quot;,
+            &quot;Principal&quot;: {
+                &quot;Federated&quot;: &quot;arn:aws:iam::&lt;mark style=&quot;background-color: orange&quot;&gt;111122223333&lt;/mark&gt;:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE&quot;
+            },
+            &quot;Action&quot;: &quot;sts:AssumeRoleWithWebIdentity&quot;,
+            &quot;Condition&quot;: {
+                &quot;StringEquals&quot;: {
+                    &quot;oidc.eks.ap-northeast-2.amazonaws.com/id/&lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;:aud&quot;: &quot;sts.amazonaws.com&quot;,
+                    &quot;oidc.eks.ap-northeast-2.amazonaws.com/id/&lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;:sub&quot;: &quot;system:serviceaccount:kube-system:aws-load-balancer-controller&quot;
+                }
+            }
+        }
+    ]
+}
+EOF
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;
+load-balancer-role-trust-policy.json 파일을 통해 IAM 역할을 생성한다.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+aws iam create-role \
+  --role-name AmazonEKSLoadBalancerControllerRole \
+  --assume-role-policy-document load-balancer-role-trust-policy.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;
+&lt;mark style=&quot;background-color: orange&quot;&gt;1111122223333&lt;/mark&gt;을 자신의  VPC ID로 바꿔준다. IAM 약할과 적책을 연결해준다.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+aws iam attach-role-policy \
+  --policy-arn arn:aws:iam::&lt;mark style=&quot;background-color: orange&quot;&gt;111122223333&lt;/mark&gt;:policy/AWSLoadBalancerControllerIAMPolicy  \
+  --role-name AmazonEKSLoadBalancerControllerRole
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;mark style=&quot;background-color: orange&quot;&gt;1111122223333&lt;/mark&gt;을 자신의  VPC ID로 바꿔준다. loadbalancer yaml 파일을 생성한다&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+cat &amp;gt;aws-load-balancer-controller-service-account.yaml &amp;lt;&amp;lt;EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: aws-load-balancer-controller
+  name: aws-load-balancer-controller
+  namespace: kube-system
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::&lt;mark style=&quot;background-color: orange&quot;&gt;111122223333&lt;/mark&gt;:role/AmazonEKSLoadBalancerControllerRole
+EOF
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;
+적용하여 Eks에 service account을 생성해 준다.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+kubectl apply -f aws-load-balancer-controller-service-account.yaml
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;helm을-이용하여-aws-load-balancer-controller-배포&quot;&gt;Helm을 이용하여 AWS Load Balancer Controller 배포&lt;/h2&gt;
+&lt;p&gt;eks-charts 리포지토리를 추가&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm repo add eks https://aws.github.io/eks-charts
+helm repo update
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;aws ecr에 있는 이미지를 통해 ALB Controller를 배포 한다&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller   -n kube-system \
+--set clusterName=&lt;mark&gt;MyEks&lt;/mark&gt; \
+--set serviceAccount.create=false \
+--set serviceAccount.name=aws-load-balancer-controller \
+--set image.repository=602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/amazon/aws-load-balancer-controller
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;keycloak-ingress를-적용한다&quot;&gt;Keycloak Ingress를 적용한다&lt;/h2&gt;
+&lt;p&gt;https로 접근해야 하기에 alb에 사용할 인증서를  ACM에서 미리 만들어 줘야 한다.&lt;br /&gt;
+소스: &lt;a href=&quot;https://github.com/ooopsy/MyEks.git&quot;&gt;https://github.com/ooopsy/MyEks.git&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/listen-ports: &apos;[{&quot;HTTP&quot;: 80}, {&quot;HTTPS&quot;:443}]&apos;
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:&lt;mark&gt;1111122223333&lt;/mark&gt;:certificate/&lt;mark&gt;aaaaaaab-bbbb-4ae8-90e6-447d9c880523&lt;/mark&gt;
+    alb.ingress.kubernetes.io/ssl-redirect: &apos;443&apos;
+spec:
+spec:
+  rules:
+  - host: sso.sad-waterdeer.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-keycloak-http
+            port:
+              number: 80
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;정상 적용 됐으면  ALB 생성됀것을 확인 할 수가 있다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/ingress/confirm_alb.png&quot; alt=&quot;tag subnet!&quot; title=&quot;tag subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><category term="키클락" /><category term="EKS" /><category term="Ingress" /><summary type="html">참조: https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html</summary></entry><entry><title type="html">Keycloak EKS 배포(Helm)</title><link href="http://localhost:4000/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html" rel="alternate" type="text/html" title="Keycloak EKS 배포(Helm)" /><published>2022-08-13T22:49:20+09:00</published><updated>2022-08-13T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/13/Keycloak%20EKS%20%EB%B0%B0%ED%8F%AC(Helm)</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html">&lt;p&gt;Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus&lt;br /&gt;
+사용하지만 사용하는 오픈소스 Helm Chart는  17 까지만 지원하고 있어&lt;br /&gt;
+WildFy 버전 배포 진행. 
+&lt;br /&gt;
 Helm Chart: &lt;a href=&quot;https://github.com/codecentric/helm-charts/tree/master/charts/keycloak/&quot;&gt;https://github.com/codecentric/helm-charts/tree/master/charts/keycloak&lt;/a&gt;&lt;/p&gt;
 
 &lt;hr /&gt;
@@ -360,160 +514,7 @@ Chart.yaml에 keycloak dependency 추가&lt;/p&gt;
 &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-it&lt;/span&gt; my-keycloak-0 &lt;span class=&quot;nt&quot;&gt;--&lt;/span&gt; /bin/bash &lt;span class=&quot;c&quot;&gt;# POD 진입&lt;/span&gt;
 /opt/jboss/keycloak/bin/add-user-keycloak.sh &lt;span class=&quot;nt&quot;&gt;-r&lt;/span&gt; master &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt; oopsy1988 &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 비밀번호   &lt;span class=&quot;c&quot;&gt;# master 사용자 추가 &lt;/span&gt;
 /opt/jboss/keycloak/bin/jboss-cli.sh &lt;span class=&quot;nt&quot;&gt;--connect&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;command&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;:reload  &lt;span class=&quot;c&quot;&gt;# 서버 재시작  &lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><category term="키클락" /><category term="EKS" /><category term="Ingress" /><summary type="html">참조: https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html Helm Chart: https://github.com/codecentric/helm-charts/tree/master/charts/keycloak</summary></entry><entry><title type="html">Keycloak EKS Ingress 적용</title><link href="http://localhost:4000/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html" rel="alternate" type="text/html" title="Keycloak EKS Ingress 적용" /><published>2022-08-23T22:49:20+09:00</published><updated>2022-08-23T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/23/Keycloak%20EKS%20Ingress%20%EC%A0%81%EC%9A%A9</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html">&lt;p&gt;참조: &lt;a href=&quot;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&quot;&gt;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;사전-준비-사항&quot;&gt;사전 준비 사항&lt;/h2&gt;
-&lt;ol&gt;
-  &lt;li&gt;eksctl 설치
-    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brew tap weaveworks/tap
-brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;weaveworks/tap/eksctl
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;subnet-tag-추가&quot;&gt;subnet tag 추가&lt;/h2&gt;
-&lt;p&gt;Keycloak을 외부에서 사용하기에 Eks의 worker node는 사용하는  Subnet은 Public접근 허용해야 하며 &lt;br /&gt;
-ALB를 생성할수 있게  Subnet은 AWS에 정의한 Tag가 추가돼어야 한다.&lt;/p&gt;
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubernetes.io/role/elb
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/images/ingress/subget_tag.png&quot; alt=&quot;tag subnet!&quot; title=&quot;tag subnet&quot; /&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;iam-oidc-자격-증명-공급자&quot;&gt;IAM OIDC 자격 증명 공급자&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code&gt;
-eksctl utils associate-iam-oidc-provider --cluster &lt;mark&gt;MyEks&lt;/mark&gt; --approve
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&quot;aws-load-balancer-controller-추가-기능-설치&quot;&gt;AWS Load Balancer Controller 추가 기능 설치&lt;/h2&gt;
-
-&lt;p&gt;AWS Load Balancer Controller의 IAM 정책을 다운로드&lt;/p&gt;
-&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;curl &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.3/docs/install/iam_policy.json
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;다운로드한 정책 JSON 파일 적용&lt;/p&gt;
-&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;aws iam create-policy &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;--policy-name&lt;/span&gt; AWSLoadBalancerControllerIAMPolicy &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;--policy-document&lt;/span&gt; iam_policy.json
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;클러스터의 OIDC 공급자 URL을 확인&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;
-aws eks describe-cluster --name &lt;mark&gt;MyEks&lt;/mark&gt; --query &quot;cluster.identity.oidc.issuer&quot; --output text
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;br /&gt;
-출력한 메세지 /id/뒤  &lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;를 복사한다.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;
-oidc.eks.ap-northeast-2.amazonaws.com/id/&lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;br /&gt;
-&lt;mark style=&quot;background-color: orange&quot;&gt;1111122223333&lt;/mark&gt;을 자신의  VPC ID로 바꿔주고 노락색으로 표시한부분 위에서 복사한 내용을 붙여준다.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;
-cat &amp;gt;load-balancer-role-trust-policy.json &amp;lt;&amp;lt;EOF
-{
-    &quot;Version&quot;: &quot;2012-10-17&quot;,
-    &quot;Statement&quot;: [
-        {
-            &quot;Effect&quot;: &quot;Allow&quot;,
-            &quot;Principal&quot;: {
-                &quot;Federated&quot;: &quot;arn:aws:iam::&lt;mark style=&quot;background-color: orange&quot;&gt;111122223333&lt;/mark&gt;:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE&quot;
-            },
-            &quot;Action&quot;: &quot;sts:AssumeRoleWithWebIdentity&quot;,
-            &quot;Condition&quot;: {
-                &quot;StringEquals&quot;: {
-                    &quot;oidc.eks.ap-northeast-2.amazonaws.com/id/&lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;:aud&quot;: &quot;sts.amazonaws.com&quot;,
-                    &quot;oidc.eks.ap-northeast-2.amazonaws.com/id/&lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;:sub&quot;: &quot;system:serviceaccount:kube-system:aws-load-balancer-controller&quot;
-                }
-            }
-        }
-    ]
-}
-EOF
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;br /&gt;
-load-balancer-role-trust-policy.json 파일을 통해 IAM 역할을 생성한다.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;
-aws iam create-role \
-  --role-name AmazonEKSLoadBalancerControllerRole \
-  --assume-role-policy-document load-balancer-role-trust-policy.json
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;br /&gt;
-&lt;mark style=&quot;background-color: orange&quot;&gt;1111122223333&lt;/mark&gt;을 자신의  VPC ID로 바꿔준다. IAM 약할과 적책을 연결해준다.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;
-aws iam attach-role-policy \
-  --policy-arn arn:aws:iam::&lt;mark style=&quot;background-color: orange&quot;&gt;111122223333&lt;/mark&gt;:policy/AWSLoadBalancerControllerIAMPolicy  \
-  --role-name AmazonEKSLoadBalancerControllerRole
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;mark style=&quot;background-color: orange&quot;&gt;1111122223333&lt;/mark&gt;을 자신의  VPC ID로 바꿔준다. loadbalancer yaml 파일을 생성한다&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;
-cat &amp;gt;aws-load-balancer-controller-service-account.yaml &amp;lt;&amp;lt;EOF
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    app.kubernetes.io/component: controller
-    app.kubernetes.io/name: aws-load-balancer-controller
-  name: aws-load-balancer-controller
-  namespace: kube-system
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::&lt;mark style=&quot;background-color: orange&quot;&gt;111122223333&lt;/mark&gt;:role/AmazonEKSLoadBalancerControllerRole
-EOF
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;br /&gt;
-적용하여 Eks에 service account을 생성해 준다.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;
-kubectl apply -f aws-load-balancer-controller-service-account.yaml
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;helm을-이용하여-aws-load-balancer-controller-배포&quot;&gt;Helm을 이용하여 AWS Load Balancer Controller 배포&lt;/h2&gt;
-&lt;p&gt;eks-charts 리포지토리를 추가&lt;/p&gt;
-&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm repo add eks https://aws.github.io/eks-charts
-helm repo update
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;aws ecr에 있는 이미지를 통해 ALB Controller를 배포 한다&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;
-helm install aws-load-balancer-controller eks/aws-load-balancer-controller   -n kube-system \
---set clusterName=&lt;mark&gt;MyEks&lt;/mark&gt; \
---set serviceAccount.create=false \
---set serviceAccount.name=aws-load-balancer-controller \
---set image.repository=602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/amazon/aws-load-balancer-controller
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&quot;keycloak-ingress를-적용한다&quot;&gt;Keycloak Ingress를 적용한다&lt;/h2&gt;
-&lt;p&gt;https로 접근해야 하기에 alb에 사용할 인증서를  ACM에서 미리 만들어 줘야 한다.&lt;br /&gt;
-소스: &lt;a href=&quot;https://github.com/ooopsy/MyEks.git&quot;&gt;https://github.com/ooopsy/MyEks.git&lt;/a&gt;&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: my-ingress
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/listen-ports: &apos;[{&quot;HTTP&quot;: 80}, {&quot;HTTPS&quot;:443}]&apos;
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:&lt;mark&gt;1111122223333&lt;/mark&gt;:certificate/&lt;mark&gt;aaaaaaab-bbbb-4ae8-90e6-447d9c880523&lt;/mark&gt;
-    alb.ingress.kubernetes.io/ssl-redirect: &apos;443&apos;
-spec:
-spec:
-  rules:
-  - host: sso.sad-waterdeer.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: my-keycloak-http
-            port:
-              number: 80
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;정상 적용 됐으면  ALB 생성됀것을 확인 할 수가 있다.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/images/ingress/confirm_alb.png&quot; alt=&quot;tag subnet!&quot; title=&quot;tag subnet&quot; /&gt;&lt;/p&gt;
-&lt;/blockquote&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><category term="키클락" /><category term="EKS" /><category term="Ingress" /><summary type="html">참조: https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html</summary></entry><entry><title type="html">Keycloak 카카오 로그인 연동</title><link href="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" rel="alternate" type="text/html" title="Keycloak 카카오 로그인 연동" /><published>2022-08-05T22:49:20+09:00</published><updated>2022-08-05T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/05/Keycloak%20%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1%20%EB%A1%9C%EA%B7%B8%EC%9D%B8</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html">&lt;p&gt;카카오 로그인 22년 3월부터 OIDC를 지원하게 돼어 keycloak과&lt;br /&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><category term="키클락" /><category term="EKS" /><category term="Helm" /><summary type="html">Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus 사용하지만 사용하는 오픈소스 Helm Chart는 17 까지만 지원하고 있어 WildFy 버전 배포 진행. Helm Chart: https://github.com/codecentric/helm-charts/tree/master/charts/keycloak</summary></entry><entry><title type="html">Keycloak 카카오 로그인 연동</title><link href="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" rel="alternate" type="text/html" title="Keycloak 카카오 로그인 연동" /><published>2022-08-05T22:49:20+09:00</published><updated>2022-08-05T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/05/Keycloak%20%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1%20%EB%A1%9C%EA%B7%B8%EC%9D%B8</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html">&lt;p&gt;카카오 로그인 22년 3월부터 OIDC를 지원하게 돼어 keycloak과&lt;br /&gt;
 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다.&lt;/p&gt;
 
 &lt;hr /&gt;

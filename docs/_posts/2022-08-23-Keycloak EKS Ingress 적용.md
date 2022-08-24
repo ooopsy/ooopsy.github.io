@@ -155,7 +155,7 @@ spec:
             port:
               number: 80
 </code></pre>
-정상 적용 됐으면  ALB 생성됀것을 확인 할 수가 있다.    
+정상 적용 됐으면  ALB 생성됀것을 확인 할 수가 있다.     
 
 > ![tag subnet!](/assets/images/ingress/confirm_alb.png "tag subnet")  
 
