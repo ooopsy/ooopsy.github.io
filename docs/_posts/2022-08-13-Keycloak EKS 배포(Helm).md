@@ -1,14 +1,14 @@
 ---
 layout: post
-title:  "Keycloak EKS 배포(Helm)"
-date:   2022-08-13 22:49:20 +0900
+title:  "Keycloak EKS Ingress 적용"
+date:   2022-08-23 22:49:20 +0900
 categories: Keycloak
-tags: SSO 통합인증 Keycloak 키클락 EKS Helm
+tags: SSO 통합인증 Keycloak 키클락 EKS Ingress
 ---
 
-Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus  
-사용하지만 사용하는 오픈소스 Helm Chart는  17 까지만 지원하고 있어  
-WildFy 버전 배포 진행. 
+
+참조: [https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html](https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html)
+    
 <br>
 Helm Chart: [https://github.com/codecentric/helm-charts/tree/master/charts/keycloak](https://github.com/codecentric/helm-charts/tree/master/charts/keycloak/)
 

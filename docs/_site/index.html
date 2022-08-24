@@ -691,19 +691,116 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
 
 <h2 class="post-title">
-        <a class="post-link" href="/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html">
-          Keycloak EKS 배포(Helm)
+        <a class="post-link" href="/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html">
+          Keycloak EKS Ingress 적용
         </a>
       </h2>
       <div class="post-meta">
-        <span class="post-date"><i class="fa fa-calendar"></i> 2022 08 13</span>
+        <span class="post-date"><i class="fa fa-calendar"></i> 2022 08 23</span>
+        <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 2 mins</span>
+      </div>
+      <a class="post-excerpt" href="/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html">
+        <p>
+        참조: https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html
+
+사전 준비 사항
+
+  eksctl 설치
+    brew tap weaveworks/tap
+brew install weaveworks/tap/eksctl
+    
+  
+
+
+subnet tag 추가
+Keycloak을 외부에서 사용하기에 Eks의 worker node는 사용하는  Subnet은 Public접근 허용해야 하며 
+ALB를 생성할수 있게  Subnet은 AWS에 정의한 Tag가 추가돼어야 한다.
+kubernetes.io/role/elb
+
+
+  
+
+
+IAM OIDC 자격 증명... <span class="read_more">Read More</span>
+        </p>
+      </a>
+      <div class="post-tags"><a class="post-tag" href="/tags.html#SSO">#SSO</a><a class="post-tag" href="/tags.html#통합인증">#통합인증</a><a class="post-tag" href="/tags.html#Keycloak">#Keycloak</a><a class="post-tag" href="/tags.html#키클락">#키클락</a><a class="post-tag" href="/tags.html#EKS">#EKS</a><a class="post-tag" href="/tags.html#Ingress">#Ingress</a></div>
+    </li><li>
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 class="post-title">
+        <a class="post-link" href="/keycloak/2022/08/23/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html">
+          Keycloak EKS Ingress 적용
+        </a>
+      </h2>
+      <div class="post-meta">
+        <span class="post-date"><i class="fa fa-calendar"></i> 2022 08 23</span>
         <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 7 mins</span>
       </div>
-      <a class="post-excerpt" href="/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html">
+      <a class="post-excerpt" href="/keycloak/2022/08/23/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html">
         <p>
-        Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus
-사용하지만 사용하는 오픈소스 Helm Chart는  17 까지만 지원하고 있어
-WildFy 버전 배포 진행. 
+        참조: https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html
+
 
 Helm Chart: https://github.com/codecentric/helm-charts/tree/master/charts/keycloak
 
@@ -720,10 +817,10 @@ Helm Chart: https://github.com/codecentric/helm-charts/tree/master/charts/keyclo
     
   
   aws cli 설치
-    https://docs.aws.amazon.com/cli/latest/... <span class="read_more">Read More</span>
+    https://docs.aws.amazon.com/cli/latest/userguide/getting-started-in... <span class="read_more">Read More</span>
         </p>
       </a>
-      <div class="post-tags"><a class="post-tag" href="/tags.html#SSO">#SSO</a><a class="post-tag" href="/tags.html#통합인증">#통합인증</a><a class="post-tag" href="/tags.html#Keycloak">#Keycloak</a><a class="post-tag" href="/tags.html#키클락">#키클락</a><a class="post-tag" href="/tags.html#EKS">#EKS</a><a class="post-tag" href="/tags.html#Helm">#Helm</a></div>
+      <div class="post-tags"><a class="post-tag" href="/tags.html#SSO">#SSO</a><a class="post-tag" href="/tags.html#통합인증">#통합인증</a><a class="post-tag" href="/tags.html#Keycloak">#Keycloak</a><a class="post-tag" href="/tags.html#키클락">#키클락</a><a class="post-tag" href="/tags.html#EKS">#EKS</a><a class="post-tag" href="/tags.html#Ingress">#Ingress</a></div>
     </li><li>
       
 
@@ -1149,7 +1246,7 @@ AngularJS-powered HTML5 Markdown editor.
   <ul>
     <li>
       <a href="/index.html">
-        All<span>5</span>
+        All<span>6</span>
       </a>
     </li>
 
@@ -1162,7 +1259,7 @@ AngularJS-powered HTML5 Markdown editor.
     
       <li>
         <a href="/categories.html#h-Keycloak">
-          Keycloak <span>4</span>
+          Keycloak <span>5</span>
         </a>
       </li>
     
