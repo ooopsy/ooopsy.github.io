@@ -30,7 +30,7 @@ https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 ```
 4. aws iam authenticator 설치 
 ``` sh
-brew install aws-iam-authenticator
+brew install aws-iam-authenticator 
 ```
 
 ## AWS 관리자 계정 생성  
