@@ -1,4 +1,70 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-08-25T00:06:10+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">Keycloak EKS Ingress 적용</title><link href="http://localhost:4000/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html" rel="alternate" type="text/html" title="Keycloak EKS Ingress 적용" /><published>2022-08-23T22:49:20+09:00</published><updated>2022-08-23T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/23/Keycloak%20EKS%20Ingress%20%EC%A0%81%EC%9A%A9</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html">&lt;p&gt;참조: &lt;a href=&quot;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&quot;&gt;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&lt;/a&gt;&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-09-10T13:36:28+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">CodeBuild pnpm 설정</title><link href="http://localhost:4000/aws/2022/09/09/CodeBuild-pnpm-%EC%84%A4%EC%A0%95.html" rel="alternate" type="text/html" title="CodeBuild pnpm 설정" /><published>2022-09-09T22:49:20+09:00</published><updated>2022-09-09T22:49:20+09:00</updated><id>http://localhost:4000/aws/2022/09/09/CodeBuild%20pnpm%20%EC%84%A4%EC%A0%95</id><content type="html" xml:base="http://localhost:4000/aws/2022/09/09/CodeBuild-pnpm-%EC%84%A4%EC%A0%95.html">&lt;p&gt;github에 있는  keywind라는 Keycloak 테마가 pnpm을 통해 빌드 하기에 설정을 진행했다 &lt;br /&gt;
+최종 목표는  keywind 소스를 빌드후  S3에 업로드 하는 것이다 &lt;br /&gt;
+나중에  Keycloak  이미지를 빌드 할때 Dockerfile에서 S3에 올라간&lt;br /&gt;
+pnpm 빌드 결과물 ftl 파일을 다운로드해서 사용한다.&lt;/p&gt;
+
+&lt;p&gt;keywind Keycloak 테마:  &lt;a href=&quot;https://github.com/lukin/keywind/&quot;&gt;https://github.com/lukin/keywind/&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;keywind-소스를-다운로드후-codecommit에-올린다&quot;&gt;keywind 소스를 다운로드후 codecommit에 올린다&lt;/h2&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/source.png&quot; alt=&quot;source!&quot; title=&quot;source&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;buildspecyml-파일을-소스-루트에-추가한다&quot;&gt;buildspec.yml 파일을 소스 루트에 추가한다&lt;/h2&gt;
+&lt;p&gt;buildspec 파일은 CodeBuild에서 디폴트로 사용하는 파일이다 &lt;br /&gt;
+npm은 CodeBuild에 제공한  Environment Image에 기본으로 설치돼 있지만&lt;br /&gt;
+pnpm은 추가로 설치해야 한다&lt;/p&gt;
+
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0.2&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;phases&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;npm install -g pnpm&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#pnpm 설치 &lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;pnpm install&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#pnpm통해 dependency 설치 &lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;n latest&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;#최신 node 버전 사용 &lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;pnpm build&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#소스 빌드 &lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;artifacts&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;base-directory&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;theme&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#build 결과물만 s3에 업로드할꺼니까 결과물 풀더를 지정한다 &lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;files&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;**/*&apos;&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;# theme 폴드 아래에 있는 모든 파일을 올린다.&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;codebuild-build-project를-만든다&quot;&gt;CodeBuild build project를 만든다.&lt;/h2&gt;
+&lt;h3 id=&quot;소스-지정&quot;&gt;소스 지정&lt;/h3&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/choose_source.png&quot; alt=&quot;choose_source!&quot; title=&quot;choose_source&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;codebuild용-이미지-선택&quot;&gt;CodeBuild용 이미지 선택&lt;/h3&gt;
+&lt;p&gt;인터넷에서 찾은 글들은 nodejs 이미지를 선택하라고 했지만 AWS에서 여러 가지 이미지를 통합해서 
+제공하는 걸로 변경했기에  standard를 선택해 주면 됀다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/env.png&quot; alt=&quot;env!&quot; title=&quot;env&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;buildspec-지정&quot;&gt;buildspec 지정&lt;/h3&gt;
+&lt;p&gt;디폴트인 소스에 추가한 buildspec.yml를 사용한다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/buildspec.png&quot; alt=&quot;buildspec!&quot; title=&quot;buildspec&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;빌드결과를-저장할-s3를-지정한다&quot;&gt;빌드결과를 저장할 S3를 지정한다&lt;/h3&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/s3.png&quot; alt=&quot;s3!&quot; title=&quot;s3&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;설정-완료-파일-확인&quot;&gt;설정 완료 파일 확인.&lt;/h2&gt;
+&lt;p&gt;설정 완료 후 빌드하면  S3에 파일 올라간 것을 확인할 수 있다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/result.png&quot; alt=&quot;result!&quot; title=&quot;result&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;</content><author><name></name></author><category term="AWS" /><category term="AWS" /><category term="CodeBuild" /><category term="pnpm" /><summary type="html">github에 있는 keywind라는 Keycloak 테마가 pnpm을 통해 빌드 하기에 설정을 진행했다 최종 목표는 keywind 소스를 빌드후 S3에 업로드 하는 것이다 나중에 Keycloak 이미지를 빌드 할때 Dockerfile에서 S3에 올라간 pnpm 빌드 결과물 ftl 파일을 다운로드해서 사용한다.</summary></entry><entry><title type="html">Keycloak EKS Ingress 적용</title><link href="http://localhost:4000/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html" rel="alternate" type="text/html" title="Keycloak EKS Ingress 적용" /><published>2022-08-23T22:49:20+09:00</published><updated>2022-08-23T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/08/23/Keycloak%20EKS%20Ingress%20%EC%A0%81%EC%9A%A9</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html">&lt;p&gt;참조: &lt;a href=&quot;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&quot;&gt;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&lt;/a&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;사전-준비-사항&quot;&gt;사전 준비 사항&lt;/h2&gt;
 &lt;ol&gt;

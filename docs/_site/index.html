@@ -7,7 +7,7 @@
 <title>Try to keep code clean | 어중간하게 잘하는 개발자.</title>
 <meta name="generator" content="Jekyll v3.9.0" />
 <meta property="og:title" content="Try to keep code clean" />
-<meta property="og:locale" content="en_US" /> 
+<meta property="og:locale" content="en_US" />
 <meta name="description" content="어중간하게 잘하는 개발자." />
 <meta property="og:description" content="어중간하게 잘하는 개발자." />
 <link rel="canonical" href="http://localhost:4000/" />
@@ -691,6 +691,99 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
 
 <h2 class="post-title">
+        <a class="post-link" href="/aws/2022/09/09/CodeBuild-pnpm-%EC%84%A4%EC%A0%95.html">
+          CodeBuild pnpm 설정
+        </a>
+      </h2>
+      <div class="post-meta">
+        <span class="post-date"><i class="fa fa-calendar"></i> 2022 09 09</span>
+        <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 1 min</span>
+      </div>
+      <a class="post-excerpt" href="/aws/2022/09/09/CodeBuild-pnpm-%EC%84%A4%EC%A0%95.html">
+        <p>
+        github에 있는  keywind라는 Keycloak 테마가 pnpm을 통해 빌드 하기에 설정을 진행했다 
+최종 목표는  keywind 소스를 빌드후  S3에 업로드 하는 것이다 
+나중에  Keycloak  이미지를 빌드 할때 Dockerfile에서 S3에 올라간
+pnpm 빌드 결과물 ftl 파일을 다운로드해서 사용한다.
+
+keywind Keycloak 테마:  https://github.com/lukin/keywind/
+
+keywind 소스를 다운로드후 codecommit에 올린다
+
+  
+
+
+
+
+buildspec.yml 파일을 소스 루트에 추가한다
+buildspec 파일은 CodeBuild에서 디폴트로 사용하는... <span class="read_more">Read More</span>
+        </p>
+      </a>
+      <div class="post-tags"><a class="post-tag" href="/tags.html#AWS">#AWS</a><a class="post-tag" href="/tags.html#CodeBuild">#CodeBuild</a><a class="post-tag" href="/tags.html#pnpm">#pnpm</a></div>
+    </li><li>
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 class="post-title">
         <a class="post-link" href="/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html">
           Keycloak EKS Ingress 적용
         </a>
@@ -1247,10 +1340,16 @@ AngularJS-powered HTML5 Markdown editor.
   <ul>
     <li>
       <a href="/index.html">
-        All<span>6</span>
+        All<span>7</span>
       </a>
     </li>
 
+    
+      <li>
+        <a href="/categories.html#h-AWS">
+          AWS <span>1</span>
+        </a>
+      </li>
     
       <li>
         <a href="/categories.html#h-Hello">
