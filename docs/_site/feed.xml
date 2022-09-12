@@ -1,4 +1,78 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-09-10T13:36:28+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">CodeBuild pnpm 설정</title><link href="http://localhost:4000/aws/2022/09/09/CodeBuild-pnpm-%EC%84%A4%EC%A0%95.html" rel="alternate" type="text/html" title="CodeBuild pnpm 설정" /><published>2022-09-09T22:49:20+09:00</published><updated>2022-09-09T22:49:20+09:00</updated><id>http://localhost:4000/aws/2022/09/09/CodeBuild%20pnpm%20%EC%84%A4%EC%A0%95</id><content type="html" xml:base="http://localhost:4000/aws/2022/09/09/CodeBuild-pnpm-%EC%84%A4%EC%A0%95.html">&lt;p&gt;github에 있는  keywind라는 Keycloak 테마가 pnpm을 통해 빌드 하기에 설정을 진행했다 &lt;br /&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-09-12T18:51:46+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">Vue,SpringBoot 프로젝트 Keycloak 연동</title><link href="http://localhost:4000/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99.html" rel="alternate" type="text/html" title="Vue,SpringBoot 프로젝트 Keycloak 연동" /><published>2022-09-11T22:49:20+09:00</published><updated>2022-09-11T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/09/11/Vue,SpringBoot%20%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20Keycloak%20%EC%97%B0%EB%8F%99</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99.html">&lt;h2 id=&quot;소스-및-데모-사이트&quot;&gt;소스 및 데모 사이트&lt;/h2&gt;
+
+&lt;p&gt;데모 사이트: &lt;a href=&quot;https://kanban.sad-waterdeer.com/&quot; target=&quot;_blank&quot;&gt;https://kanban.sad-waterdeer.com/&lt;/a&gt;&lt;br /&gt;
+Vue 소스: &lt;a href=&quot;https://github.com/ooopsy/kanban-frontend&quot; target=&quot;_blank&quot;&gt;https://github.com/ooopsy/kanban-frontend&lt;/a&gt; &lt;br /&gt;
+SpringBoot 소스: &lt;a href=&quot;https://github.com/ooopsy/kanban-backend&quot; target=&quot;_blank&quot;&gt;https://github.com/ooopsy/kanban-backend&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Keycloak의  Oauth2.0 프로토컬을 이용하여  Kanban 샘플 프로젝트를 만들었다&lt;br /&gt;
+Oauth 2.0 은 인터넷에 잘 풀어서 설명하는 글이 많아 포로토콜에 대한 설명은 생략한다.&lt;/p&gt;
+
+&lt;h3 id=&quot;vue&quot;&gt;Vue&lt;/h3&gt;
+&lt;h4 id=&quot;keycloak-client-등록&quot;&gt;Keycloak client 등록&lt;/h4&gt;
+&lt;p&gt;Keycloak 콘설에서  Vue프로젝트를 Client로 등록한다.&lt;br /&gt;
+Vue 프로젝트는 단순하게 화면표시만 하고 token을 검증하거나 token에 있는 정보로&lt;br /&gt;
+데이터를 조회하지 않기에 Access Type을  public으로 해야한다. &lt;br /&gt;
+또한 Vue와 같은 frontend는 사용자에게 완전히 노출돼기 때문에 client_secret을 가지면 안됀다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/vue/client_setting.png&quot; alt=&quot;client_setting.png!&quot; title=&quot;client_setting.png&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;vue-소스-설명&quot;&gt;Vue 소스 설명&lt;/h4&gt;
+&lt;p&gt;keycloak javascript adpater가 프로젝트에 추가 돼 있어야 한다&lt;br /&gt;
+&lt;a href=&quot;https://www.npmjs.com/package/keycloak-js&quot;&gt;https://www.npmjs.com/package/keycloak-js&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Keycloak 인증서버 URL 및 등록한 Client의 Id 및 Realm 정보로  keycloak 객체를 초기화 한다 .&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;//https://github.com/ooopsy/kanban-frontend/blob/master/src/main.js&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;keycloak&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Keycloak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;https://sso.sad-waterdeer.com/auth&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;realm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;TEST&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;clientId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;kanban_local&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;프로젝트 특성상  로그인 안한 사용자는 사용할 수가 없기에&lt;br /&gt;
+onLoad: ‘login-required’로  설정 하여  사용가 로그인한 상태에만 &lt;br /&gt;
+화면을 표시하게 설정했다 (app.mount(“#app”)).&lt;/p&gt;
+
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;flow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;standard&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;onLoad&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;login-required&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;checkLoginIframe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;}).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;auth&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;mount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;#app&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;aioxs 요청 발생전 사용자 인증이 완료한 상태 이기에&lt;br /&gt;
+keycloak 객체에 무조건 token이 담겨져 있을거다.&lt;br /&gt;
+backend 서버(Springboot)에 요청 할때  발급 받은 token을  해더에 적재 한다.&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;nx&quot;&gt;axios&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;interceptors&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;use&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;updateToken&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;60&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+        &lt;span class=&quot;nx&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Authorization&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;`Bearer &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;token&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;`&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;backend 서버로 요청하여  401 또는 403을 받았는다는 것은  token이 더 이상 유효 하지&lt;br /&gt;
+않거나 불법 URL을 방문 했다는것으로 바로 logout시켜서 다시 인증게 한다.&lt;/p&gt;
+
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;nx&quot;&gt;axios&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;interceptors&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;use&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;status&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;401&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;status&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;403&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;VueCookies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;remove&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;token&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;getTopDomain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;logout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Promise&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;reject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;To Be continued…
+ &lt;em&gt;**&lt;/em&gt;&lt;/p&gt;</content><author><name></name></author><category term="Keycloak" /><category term="Vue" /><category term="SpringBoot" /><category term="Keycloak" /><summary type="html">소스 및 데모 사이트</summary></entry><entry><title type="html">CodeBuild pnpm 설정</title><link href="http://localhost:4000/aws/2022/09/09/CodeBuild-pnpm-%EC%84%A4%EC%A0%95-copy.html" rel="alternate" type="text/html" title="CodeBuild pnpm 설정" /><published>2022-09-09T22:49:20+09:00</published><updated>2022-09-09T22:49:20+09:00</updated><id>http://localhost:4000/aws/2022/09/09/CodeBuild%20pnpm%20%EC%84%A4%EC%A0%95%20copy</id><content type="html" xml:base="http://localhost:4000/aws/2022/09/09/CodeBuild-pnpm-%EC%84%A4%EC%A0%95-copy.html">&lt;p&gt;github에 있는  keywind라는 Keycloak 테마가 pnpm을 통해 빌드 하기에 설정을 진행했다 &lt;br /&gt;
 최종 목표는  keywind 소스를 빌드후  S3에 업로드 하는 것이다 &lt;br /&gt;
 나중에  Keycloak  이미지를 빌드 할때 Dockerfile에서 S3에 올라간&lt;br /&gt;
 pnpm 빌드 결과물 ftl 파일을 다운로드해서 사용한다.&lt;/p&gt;
