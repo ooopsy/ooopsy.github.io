@@ -162,13 +162,13 @@ Keycloak Spring security 관련 소스 추가
   - NullAuthenticatedSessionStrategy를 선언한다  token의 유효시간 체크만 의존하고 session을 관리할 필요가 없다.(token 시간을 짧게 가져가면 되기에)
 - KeycloakAuthenticationProvider
   - spring security 관련해여 공부 해보면 기본적으로 AuthenticationProvider를 통해 인증기능을 구현한다
-  - 최소하나는 필요하여  Keycloak의 기본 Provider를 선언한다 
+  - 최소 하나는 필요하여  Keycloak의 기본 Provider를 선언한다 
   - 인증 체계에 맞게 해당 Class를 상속하여 인증로직을 추가해야 한다  
 - 상위인 KeycloakWebSecurityConfigurerAdapter 에서 token에 대한 유현성체크  filter 들을 대신 선언 해줬다 
   - 핵심 로직은 KeycloakAuthenticationProcessingFilter 에서 확인 할 수가 있다 
-  - 실저 token 체크는 BearerTokenRequestAuthenticator.authenticate 에서 진행한다.
-  - AdapterTokenVerifier에서  keycloak 메타 정보에 있는 public key로 token이 위조 됐는지 확인한다  
-  - AuthenticatedActionsHandler 에서 추가로 인가를 체크한다. 인가는 굉장히 큰 주제로.....   
+  - 실제 token 체크는 BearerTokenRequestAuthenticator.authenticate 에서 진행한다.
+  - AdapterTokenVerifier에서  keycloak 메타 정보에 있는 public key로 token이 위조 됐는지를 확인한다  
+  - AuthenticatedActionsHandler에서 추가로 keycloak에 요청하여 인가를 체크를 할 수도 있다. 인가는 굉장히 큰 주제로.....   
 
 ```java
 @KeycloakConfiguration

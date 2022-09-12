@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-09-12T22:33:16+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">Vue,SpringBoot 프로젝트 Keycloak 연동</title><link href="http://localhost:4000/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99.html" rel="alternate" type="text/html" title="Vue,SpringBoot 프로젝트 Keycloak 연동" /><published>2022-09-11T22:49:20+09:00</published><updated>2022-09-11T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/09/11/Vue,SpringBoot%20%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20Keycloak%20%EC%97%B0%EB%8F%99</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99.html">&lt;h2 id=&quot;소스-및-데모-사이트&quot;&gt;소스 및 데모 사이트&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-09-12T22:42:33+09:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">Vue,SpringBoot 프로젝트 Keycloak 연동</title><link href="http://localhost:4000/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99.html" rel="alternate" type="text/html" title="Vue,SpringBoot 프로젝트 Keycloak 연동" /><published>2022-09-11T22:49:20+09:00</published><updated>2022-09-11T22:49:20+09:00</updated><id>http://localhost:4000/keycloak/2022/09/11/Vue,SpringBoot%20%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20Keycloak%20%EC%97%B0%EB%8F%99</id><content type="html" xml:base="http://localhost:4000/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99.html">&lt;h2 id=&quot;소스-및-데모-사이트&quot;&gt;소스 및 데모 사이트&lt;/h2&gt;
 
 &lt;p&gt;데모 사이트: &lt;a href=&quot;https://kanban.sad-waterdeer.com/&quot; target=&quot;_blank&quot;&gt;https://kanban.sad-waterdeer.com/&lt;/a&gt;&lt;br /&gt;
 Vue 소스: &lt;a href=&quot;https://github.com/ooopsy/kanban-frontend&quot; target=&quot;_blank&quot;&gt;https://github.com/ooopsy/kanban-frontend&lt;/a&gt; &lt;br /&gt;
@@ -156,16 +156,16 @@ json 파일은 개발, 운영 환경 profile별로 관리하기가 어렵다.(pr
   &lt;li&gt;KeycloakAuthenticationProvider
     &lt;ul&gt;
       &lt;li&gt;spring security 관련해여 공부 해보면 기본적으로 AuthenticationProvider를 통해 인증기능을 구현한다&lt;/li&gt;
-      &lt;li&gt;최소하나는 필요하여  Keycloak의 기본 Provider를 선언한다&lt;/li&gt;
+      &lt;li&gt;최소 하나는 필요하여  Keycloak의 기본 Provider를 선언한다&lt;/li&gt;
       &lt;li&gt;인증 체계에 맞게 해당 Class를 상속하여 인증로직을 추가해야 한다&lt;/li&gt;
     &lt;/ul&gt;
   &lt;/li&gt;
   &lt;li&gt;상위인 KeycloakWebSecurityConfigurerAdapter 에서 token에 대한 유현성체크  filter 들을 대신 선언 해줬다
     &lt;ul&gt;
       &lt;li&gt;핵심 로직은 KeycloakAuthenticationProcessingFilter 에서 확인 할 수가 있다&lt;/li&gt;
-      &lt;li&gt;실저 token 체크는 BearerTokenRequestAuthenticator.authenticate 에서 진행한다.&lt;/li&gt;
-      &lt;li&gt;AdapterTokenVerifier에서  keycloak 메타 정보에 있는 public key로 token이 위조 됐는지 확인한다&lt;/li&gt;
-      &lt;li&gt;AuthenticatedActionsHandler 에서 추가로 인가를 체크한다. 인가는 굉장히 큰 주제로…..&lt;/li&gt;
+      &lt;li&gt;실제 token 체크는 BearerTokenRequestAuthenticator.authenticate 에서 진행한다.&lt;/li&gt;
+      &lt;li&gt;AdapterTokenVerifier에서  keycloak 메타 정보에 있는 public key로 token이 위조 됐는지를 확인한다&lt;/li&gt;
+      &lt;li&gt;AuthenticatedActionsHandler에서 추가로 keycloak에 요청하여 인가를 체크를 할 수도 있다. 인가는 굉장히 큰 주제로…..&lt;/li&gt;
     &lt;/ul&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
