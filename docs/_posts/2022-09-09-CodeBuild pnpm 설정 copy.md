@@ -61,4 +61,4 @@ artifacts:
 설정 완료 후 빌드하면  S3에 파일 올라간 것을 확인할 수 있다.  
 > ![result!](/assets/images/cb/result.png "result")  
 
- ****
+ ***
