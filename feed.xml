@@ -1,0 +1,1313 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="https://www.sad-waterdeer.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://www.sad-waterdeer.com/" rel="alternate" type="text/html" /><updated>2022-10-10T12:55:47+00:00</updated><id>https://www.sad-waterdeer.com/feed.xml</id><title type="html">Try to keep code clean</title><subtitle>어중간하게 잘하는 개발자.</subtitle><entry><title type="html">SpringSecurity5.7 Keycloak 연동</title><link href="https://www.sad-waterdeer.com/keycloak/2022/10/09/SpringSecurity6-Keycloak-%EC%97%B0%EB%8F%99.html" rel="alternate" type="text/html" title="SpringSecurity5.7 Keycloak 연동" /><published>2022-10-09T13:49:20+00:00</published><updated>2022-10-09T13:49:20+00:00</updated><id>https://www.sad-waterdeer.com/keycloak/2022/10/09/SpringSecurity6%20Keycloak%20%EC%97%B0%EB%8F%99</id><content type="html" xml:base="https://www.sad-waterdeer.com/keycloak/2022/10/09/SpringSecurity6-Keycloak-%EC%97%B0%EB%8F%99.html">&lt;p&gt;SpringSecurity 5.7 버전부터 OAuth2.0 및 SAML2.0에 대한 지원이 추가되면서 &lt;br /&gt;
+Keycloak 홈페이지에서도 기존에 제공하는 Springboot Keycloak Adapter보다  &lt;br /&gt;
+SpringSecurity 5.7을 사용하는 것을 추천하고 있다.&lt;/p&gt;
+
+&lt;p&gt;이 문서는 SpringSecurity5.7 기반이므로 이전 버전은 &lt;br /&gt;
+Keycloak Adapter를 사용하는 이하 링크를 참조하면 될거 같다. &lt;br /&gt;
+&lt;a href=&quot;https://www.sad-waterdeer.com/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99.html&quot;&gt;Vue,SpringBoot 프로젝트 Keycloak 연동&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;maven-dependency&quot;&gt;Maven dependency&lt;/h2&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;&amp;lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;project&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;xmlns=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;http://maven.apache.org/POM/4.0.0&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;xmlns:xsi=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&lt;/span&gt;
+	&lt;span class=&quot;na&quot;&gt;xsi:schemaLocation=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;modelVersion&amp;gt;&lt;/span&gt;4.0.0&lt;span class=&quot;nt&quot;&gt;&amp;lt;/modelVersion&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;parent&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter-parent&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;2.7.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;relativePath/&amp;gt;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- lookup parent from repository --&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/parent&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;com.example&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;demo&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.0.1-SNAPSHOT&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;demo&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Demo project for Spring Boot&lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;properties&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;java.version&amp;gt;&lt;/span&gt;11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/java.version&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;spring-security.version&amp;gt;&lt;/span&gt;5.7.3&lt;span class=&quot;nt&quot;&gt;&amp;lt;/spring-security.version&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/properties&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependencies&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+			&lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+			&lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter-security&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+			&lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+			&lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter-web&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+		
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+		    &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+		    &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter-thymeleaf&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+		
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+	      &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.security&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+	      &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-security-oauth2-client&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+	    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+		
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+	      &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.security&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+	      &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-security-oauth2-jose&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+	    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+	    
+	     &lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+	      &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.security&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+	      &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-security-oauth2-resource-server&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+      	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+		
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+		  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+		  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter-test&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+		  &lt;span class=&quot;nt&quot;&gt;&amp;lt;scope&amp;gt;&lt;/span&gt;test&lt;span class=&quot;nt&quot;&gt;&amp;lt;/scope&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+		  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.security&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+		  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-security-test&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+		  &lt;span class=&quot;nt&quot;&gt;&amp;lt;scope&amp;gt;&lt;/span&gt;test&lt;span class=&quot;nt&quot;&gt;&amp;lt;/scope&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependencies&amp;gt;&lt;/span&gt;
+
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;build&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;plugins&amp;gt;&lt;/span&gt;
+			&lt;span class=&quot;nt&quot;&gt;&amp;lt;plugin&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-maven-plugin&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+			&lt;span class=&quot;nt&quot;&gt;&amp;lt;/plugin&amp;gt;&lt;/span&gt;
+		&lt;span class=&quot;nt&quot;&gt;&amp;lt;/plugins&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/build&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/project&amp;gt;&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;two-tier-구조&quot;&gt;Two Tier 구조&lt;/h2&gt;
+&lt;p&gt;진행 해봤던  Two Tier 구조 프로젝트들은 사용자에 대한 관리 기능을 전부 가지고 있고 &lt;br /&gt;
+SpringSecurity를 이용하여 로그인 기능을 구현하고  서버 메모리 또는  Redis를 통해 웨서버 새션을 관리하여&lt;br /&gt;
+Keycloack은 단순 통합용으로 Thrid Party(간편 로그인)으로 사용했다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/security/login_page.png&quot; alt=&quot;login_page.png&quot; title=&quot;login_page.png&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;security-설정&quot;&gt;Security 설정&lt;/h3&gt;
+
+&lt;p&gt;SecurityConfig  설정&lt;/p&gt;
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@Configuration&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SecurityConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+	&lt;span class=&quot;nd&quot;&gt;@Bean&lt;/span&gt;
+	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SecurityFilterChain&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;filterChain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;HttpSecurity&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;
+			&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;formLogin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// 로그인 페이지 추가 &lt;/span&gt;
+			&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;and&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+			&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;oauth2Login&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// OAuth2.0 로그인 기능 활성화 &lt;/span&gt;
+			&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;and&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+			&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;authorizeHttpRequests&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+			&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;anyRequest&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+			&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;authenticated&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+		
+		&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+	
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Keycloak 관련 정보 application.yml에 추가&lt;/p&gt;
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;spring&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;thymeleaf&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;cache&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;security&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;oauth2&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;registration&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;  
+            &lt;span class=&quot;na&quot;&gt;client-id&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;springsecurity&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;client-secret&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;exbrjy60WcnbTh4Slwk9FZ4NHlTnS13S&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;authorization-grant-type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;authorization_code&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;redirect-uri&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://localhost:8081/login/oauth2/code/keycloak&lt;/span&gt; 
+        &lt;span class=&quot;na&quot;&gt;provider&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; 
+            &lt;span class=&quot;na&quot;&gt;authorization-uri&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://localhost:8080/realms/MY/protocol/openid-connect/auth&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;token-uri&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://localhost:8080/realms/MY/protocol/openid-connect/token&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;user-info-uri&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://localhost:8080/realms/MY/protocol/openid-connect/userinfo&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;jwk-set-uri&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://localhost:8080/realms/MY/protocol/openid-connect/certs&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;user-name-attribute&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;sub&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SpringSecurity" /><category term="5.7" /><category term="Keycloak" /><summary type="html">SpringSecurity 5.7 버전부터 OAuth2.0 및 SAML2.0에 대한 지원이 추가되면서 Keycloak 홈페이지에서도 기존에 제공하는 Springboot Keycloak Adapter보다 SpringSecurity 5.7을 사용하는 것을 추천하고 있다.</summary></entry><entry><title type="html">Vue,SpringBoot 프로젝트 Keycloak 연동</title><link href="https://www.sad-waterdeer.com/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99-copy.html" rel="alternate" type="text/html" title="Vue,SpringBoot 프로젝트 Keycloak 연동" /><published>2022-09-11T13:49:20+00:00</published><updated>2022-09-11T13:49:20+00:00</updated><id>https://www.sad-waterdeer.com/keycloak/2022/09/11/Vue,SpringBoot%20%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20Keycloak%20%EC%97%B0%EB%8F%99%20copy</id><content type="html" xml:base="https://www.sad-waterdeer.com/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99-copy.html">&lt;h2 id=&quot;소스-및-데모-사이트&quot;&gt;소스 및 데모 사이트&lt;/h2&gt;
+
+&lt;p&gt;데모 사이트: &lt;a href=&quot;https://kanban.sad-waterdeer.com/&quot; target=&quot;_blank&quot;&gt;https://kanban.sad-waterdeer.com/&lt;/a&gt;&lt;br /&gt;
+Vue 소스: &lt;a href=&quot;https://github.com/ooopsy/kanban-frontend&quot; target=&quot;_blank&quot;&gt;https://github.com/ooopsy/kanban-frontend&lt;/a&gt; &lt;br /&gt;
+SpringBoot 소스: &lt;a href=&quot;https://github.com/ooopsy/kanban-backend&quot; target=&quot;_blank&quot;&gt;https://github.com/ooopsy/kanban-backend&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Keycloak의  Oauth2.0 프로토컬을 이용하여  Kanban 샘플 프로젝트를 만들었다&lt;br /&gt;
+Oauth 2.0 은 인터넷에 잘 풀어서 설명하는 글이 많아 포로토콜에 대한 설명은 생략한다.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;vue&quot;&gt;Vue&lt;/h3&gt;
+&lt;h4 id=&quot;keycloak-client-등록&quot;&gt;Keycloak client 등록&lt;/h4&gt;
+&lt;p&gt;Keycloak 콘솔에서  Vue프로젝트 URL를 Client로 등록한다.&lt;br /&gt;
+Vue 프로젝트는 단순하게 화면표시만 하고 token을 검증하거나 token에 있는 정보로&lt;br /&gt;
+데이터를 조회하지 않기에 Access Type을  public으로 해야한다. &lt;br /&gt;
+또한 Vue와 같은 frontend는 사용자에게 완전히 노출돼기 때문에 client_secret을 가지면 안됀다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/vue/client_setting.png&quot; alt=&quot;client_setting.png!&quot; title=&quot;client_setting.png&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;vue-소스-설명&quot;&gt;Vue 소스 설명&lt;/h4&gt;
+&lt;p&gt;keycloak javascript adpater가 프로젝트에 추가 돼 있어야 한다&lt;br /&gt;
+&lt;a href=&quot;https://www.npmjs.com/package/keycloak-js&quot;&gt;https://www.npmjs.com/package/keycloak-js&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Keycloak 인증서버 URL 및 등록한 Client의 Id 및 Realm 정보로  keycloak 객체를 초기화 한다&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;//https://github.com/ooopsy/kanban-frontend/blob/master/src/main.js&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;keycloak&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Keycloak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;https://sso.sad-waterdeer.com/auth&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;realm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;TEST&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;clientId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;kanban_local&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+프로젝트 특성상  로그인 안한 사용자는 사용할 수가 없기에&lt;br /&gt;
+onLoad: ‘login-required’로  설정 하여  사용가 로그인한 상태에만 &lt;br /&gt;
+화면을 표시하게 설정 (app.mount(“#app”))&lt;br /&gt;
+.then() 블록에 진입시  aurhozation code flow 전부 진행 완료하여&lt;br /&gt;
+token 발급 까지 완료한 상태다 그 과정이 궁금하다면 keycloak.js를 분석하면 됀다&lt;/p&gt;
+
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;flow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;standard&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;onLoad&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;login-required&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;checkLoginIframe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;}).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;auth&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;mount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;#app&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;aioxs 요청 발생전 사용자 인증이 완료한 상태 이기에&lt;br /&gt;
+keycloak 객체에 무조건 token이 담겨져 있을거다.&lt;br /&gt;
+backend 서버(Springboot)에 요청 할때  발급 받은 token을  해더에 적재 한다.
+서버에 요청하기전에  refresh token으로 신규 token을 갱신한다(필요시)
+파라미터 60은 token의 유효시간이 60초 이하 또는 이미 유효시간 지났을 때 token을 갱신하겠다는 뜻이다.&lt;/p&gt;
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;nx&quot;&gt;axios&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;interceptors&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;use&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;updateToken&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;60&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+        &lt;span class=&quot;nx&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Authorization&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;`Bearer &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;token&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;`&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;
+backend 서버로 요청하여  401 또는 403을 받았는다는 것은  token이 더 이상 유효 하지&lt;br /&gt;
+않거나 불법 URL을 방문 했다는것으로 바로 logout시켜서 다시 인증하게 한다.&lt;/p&gt;
+
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;nx&quot;&gt;axios&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;interceptors&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;use&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;status&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;401&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;status&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;403&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;VueCookies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;remove&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;token&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;getTopDomain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;logout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Promise&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;reject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;springboot&quot;&gt;SpringBoot&lt;/h3&gt;
+&lt;h4 id=&quot;springboot-client로-등록&quot;&gt;Springboot Client로 등록&lt;/h4&gt;
+&lt;p&gt;Springboot 토큰을 검증만 하기에  bearer-only로 등록한다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/vue/springboot.png&quot; alt=&quot;springboot.png!&quot; title=&quot;springboot.png&quot; /&gt;
+&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Credentials 탭에서 Generate Secret로 secret를 생성한다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/vue/credential.png&quot; alt=&quot;credential.png!&quot; title=&quot;credential.png&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;dependency-추가&quot;&gt;dependency 추가&lt;/h4&gt;
+&lt;p&gt;pom.xml에 필요한 dependency를 추가한다&lt;br /&gt;
+keycloak adapter는  spring security에 dependency가 있어  spring security도 추가 해준다&lt;/p&gt;
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter-security&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.keycloak&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;keycloak-spring-boot-starter&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;17.0.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h4 id=&quot;keycloak-관련-설정을-추가한다&quot;&gt;keycloak 관련 설정을 추가한다&lt;/h4&gt;
+&lt;p&gt;resource:  client_id 입력&lt;br /&gt;
+bearer-only: true 로 설정한다 true로 설정하면 token이 유하지 않을때 401을 리턴한다&lt;/p&gt;
+&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;auth-server-url&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;https://sso.sad-waterdeer.com/auth&lt;/span&gt; 
+  &lt;span class=&quot;na&quot;&gt;realm&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;TEST&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;bearer-only&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;true&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;resource&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;kanban-backend&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;ssl-required&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;none&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;credentials&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;secret&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;tOZGJnUHBJULRdCuAOZ5lmPAzBMqnQMK&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h4 id=&quot;필요-소스-추가&quot;&gt;필요 소스 추가&lt;/h4&gt;
+&lt;p&gt;KeycloakSpringBootConfigResolver를 추가하여 application.yml로 keycloak 정보를 관리한다 &lt;br /&gt;
+KeycloakWebSecurityConfigurerAdapter 내용을 확인하면 디폴트로  keycloak.json 파일을 찾는다&lt;br /&gt;
+json 파일은 개발, 운영 환경 profile별로 관리하기가 어렵다.(profile에 맞게 json파일을 찾는 나만의 KeycloakConfigResolver을 구현해야 함 )&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;com.example.kanban.config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.springframework.context.annotation.Bean&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.springframework.context.annotation.Configuration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;nd&quot;&gt;@Configuration&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KeycloakConfig&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+    &lt;span class=&quot;nd&quot;&gt;@Bean&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KeycloakSpringBootConfigResolver&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;keycloakConfigResolver&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;KeycloakSpringBootConfigResolver&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Keycloak Spring security 관련 소스 추가&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;SessionAuthenticationStrategy
+    &lt;ul&gt;
+      &lt;li&gt;NullAuthenticatedSessionStrategy를 선언한다  token의 유효시간 체크만 의존하고 session을 관리할 필요가 없다.(token 시간을 짧게 가져가면 되기에)&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;KeycloakAuthenticationProvider
+    &lt;ul&gt;
+      &lt;li&gt;spring security 관련해여 공부 해보면 기본적으로 AuthenticationProvider를 통해 인증기능을 구현한다&lt;/li&gt;
+      &lt;li&gt;최소 하나는 필요하여  Keycloak의 기본 Provider를 선언한다&lt;/li&gt;
+      &lt;li&gt;인증 체계에 맞게 해당 Class를 상속하여 인증로직을 추가해야 한다&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;상위인 KeycloakWebSecurityConfigurerAdapter 에서 token에 대한 유현성체크  filter 들을 대신 선언 해줬다
+    &lt;ul&gt;
+      &lt;li&gt;핵심 로직은 KeycloakAuthenticationProcessingFilter 에서 확인 할 수가 있다&lt;/li&gt;
+      &lt;li&gt;실제 token 체크는 BearerTokenRequestAuthenticator.authenticate 에서 진행한다.&lt;/li&gt;
+      &lt;li&gt;AdapterTokenVerifier에서  keycloak 메타 정보에 있는 public key로 token이 위조 됐는지를 확인한다&lt;/li&gt;
+      &lt;li&gt;AuthenticatedActionsHandler에서 추가로 keycloak에 요청하여 인가를 체크를 할 수도 있다. 인가는 굉장히 큰 주제로…..&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@KeycloakConfiguration&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SecurityConfig&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KeycloakWebSecurityConfigurerAdapter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+	
+	&lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+	&lt;span class=&quot;kd&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SessionAuthenticationStrategy&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sessionAuthenticationStrategy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;NullAuthenticatedSessionStrategy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+	
+	&lt;span class=&quot;nd&quot;&gt;@Bean&lt;/span&gt;
+	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KeycloakAuthenticationProvider&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getKeycloakAuthenticationProvider&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;KeycloakAuthenticationProvider&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+	
+	
+	&lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;HttpSecurity&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;cors&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;and&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;csrf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;disable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+        	&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;authorizeHttpRequests&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+        	&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;anyRequest&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;authenticated&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;	
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+	
+	&lt;span class=&quot;nd&quot;&gt;@Bean&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CorsConfigurationSource&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;corsConfigurationSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CorsConfiguration&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CorsConfiguration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setAllowedOrigins&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Arrays&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;asList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;http://kanban.sad-waterdeer.com&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; 
+        		&lt;span class=&quot;s&quot;&gt;&quot;https://kanban.sad-waterdeer.com&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; 
+        		&lt;span class=&quot;s&quot;&gt;&quot;http://localhost:5173&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setAllowedMethods&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Arrays&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;asList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;HEAD&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                &lt;span class=&quot;s&quot;&gt;&quot;GET&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;POST&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;PUT&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;DELETE&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;PATCH&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setAllowCredentials&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setAllowedHeaders&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Arrays&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;asList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Authorization&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Cache-Control&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Content-Type&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;UrlBasedCorsConfigurationSource&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;UrlBasedCorsConfigurationSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;registerCorsConfiguration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/**&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+	
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;token 체크를 완료하면 token에 해당하는 정보들이 SpringSecurity의 Context(Threadlocal)에 저장 됀다.&lt;br /&gt;
+Service 또는 Controller에서 꺼내서 쓰면 됀다.&lt;/p&gt;
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TokenUtil&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;AccessToken&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getAccessToken&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;nc&quot;&gt;Authentication&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;authentication&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SecurityContextHolder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getAuthentication&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+		&lt;span class=&quot;nc&quot;&gt;KeycloakAuthenticationToken&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;token&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;KeycloakAuthenticationToken&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;authentication&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;nd&quot;&gt;@SuppressWarnings&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;unchecked&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+		&lt;span class=&quot;nc&quot;&gt;KeycloakPrincipal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;KeycloakSecurityContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keycloakPrincipal&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;KeycloakPrincipal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;KeycloakSecurityContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;token&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getPrincipal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;nc&quot;&gt;KeycloakSecurityContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keycloakPrincipal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getKeycloakSecurityContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getToken&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name></name></author><category term="Keycloak" /><category term="Vue" /><category term="SpringBoot" /><category term="Keycloak" /><summary type="html">소스 및 데모 사이트</summary></entry><entry><title type="html">CodeBuild pnpm 설정</title><link href="https://www.sad-waterdeer.com/aws/2022/09/09/CodeBuild-pnpm-%EC%84%A4%EC%A0%95-copy.html" rel="alternate" type="text/html" title="CodeBuild pnpm 설정" /><published>2022-09-09T13:49:20+00:00</published><updated>2022-09-09T13:49:20+00:00</updated><id>https://www.sad-waterdeer.com/aws/2022/09/09/CodeBuild%20pnpm%20%EC%84%A4%EC%A0%95%20copy</id><content type="html" xml:base="https://www.sad-waterdeer.com/aws/2022/09/09/CodeBuild-pnpm-%EC%84%A4%EC%A0%95-copy.html">&lt;p&gt;github에 있는  keywind라는 Keycloak 테마가 pnpm을 통해 빌드 하기에 설정을 진행했다 &lt;br /&gt;
+최종 목표는  keywind 소스를 빌드후  S3에 업로드 하는 것이다 &lt;br /&gt;
+나중에  Keycloak  이미지를 빌드 할때 Dockerfile에서 S3에 올라간&lt;br /&gt;
+pnpm 빌드 결과물 ftl 파일을 다운로드해서 사용한다.&lt;/p&gt;
+
+&lt;p&gt;keywind Keycloak 테마:  &lt;a href=&quot;https://github.com/lukin/keywind/&quot;&gt;https://github.com/lukin/keywind/&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;keywind-소스를-다운로드후-codecommit에-올린다&quot;&gt;keywind 소스를 다운로드후 codecommit에 올린다&lt;/h2&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/source.png&quot; alt=&quot;source!&quot; title=&quot;source&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;buildspecyml-파일을-소스-루트에-추가한다&quot;&gt;buildspec.yml 파일을 소스 루트에 추가한다&lt;/h2&gt;
+&lt;p&gt;buildspec 파일은 CodeBuild에서 디폴트로 사용하는 파일이다 &lt;br /&gt;
+npm은 CodeBuild에 제공한  Environment Image에 기본으로 설치돼 있지만&lt;br /&gt;
+pnpm은 추가로 설치해야 한다&lt;/p&gt;
+
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0.2&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;phases&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;npm install -g pnpm&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#pnpm 설치 &lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;pnpm install&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#pnpm통해 dependency 설치 &lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;n latest&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;#최신 node 버전 사용 &lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;pnpm build&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#소스 빌드 &lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;artifacts&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;base-directory&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;theme&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#build 결과물만 s3에 업로드할꺼니까 결과물 풀더를 지정한다 &lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;files&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;**/*'&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;# theme 폴드 아래에 있는 모든 파일을 올린다.&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;codebuild-build-project를-만든다&quot;&gt;CodeBuild build project를 만든다.&lt;/h2&gt;
+&lt;h3 id=&quot;소스-지정&quot;&gt;소스 지정&lt;/h3&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/choose_source.png&quot; alt=&quot;choose_source!&quot; title=&quot;choose_source&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;codebuild용-이미지-선택&quot;&gt;CodeBuild용 이미지 선택&lt;/h3&gt;
+&lt;p&gt;인터넷에서 찾은 글들은 nodejs 이미지를 선택하라고 했지만 AWS에서 여러 가지 이미지를 통합해서 
+제공하는 걸로 변경했기에  standard를 선택해 주면 됀다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/env.png&quot; alt=&quot;env!&quot; title=&quot;env&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;buildspec-지정&quot;&gt;buildspec 지정&lt;/h3&gt;
+&lt;p&gt;디폴트인 소스에 추가한 buildspec.yml를 사용한다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/buildspec.png&quot; alt=&quot;buildspec!&quot; title=&quot;buildspec&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;빌드결과를-저장할-s3를-지정한다&quot;&gt;빌드결과를 저장할 S3를 지정한다&lt;/h3&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/s3.png&quot; alt=&quot;s3!&quot; title=&quot;s3&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;설정-완료-파일-확인&quot;&gt;설정 완료 파일 확인.&lt;/h2&gt;
+&lt;p&gt;설정 완료 후 빌드하면  S3에 파일 올라간 것을 확인할 수 있다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/cb/result.png&quot; alt=&quot;result!&quot; title=&quot;result&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;</content><author><name></name></author><category term="AWS" /><category term="AWS" /><category term="CodeBuild" /><category term="pnpm" /><summary type="html">github에 있는 keywind라는 Keycloak 테마가 pnpm을 통해 빌드 하기에 설정을 진행했다 최종 목표는 keywind 소스를 빌드후 S3에 업로드 하는 것이다 나중에 Keycloak 이미지를 빌드 할때 Dockerfile에서 S3에 올라간 pnpm 빌드 결과물 ftl 파일을 다운로드해서 사용한다.</summary></entry><entry><title type="html">Keycloak EKS Ingress 적용</title><link href="https://www.sad-waterdeer.com/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html" rel="alternate" type="text/html" title="Keycloak EKS Ingress 적용" /><published>2022-08-23T13:49:20+00:00</published><updated>2022-08-23T13:49:20+00:00</updated><id>https://www.sad-waterdeer.com/keycloak/2022/08/23/Keycloak%20EKS%20Ingress%20%EC%A0%81%EC%9A%A9</id><content type="html" xml:base="https://www.sad-waterdeer.com/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html">&lt;p&gt;참조: &lt;a href=&quot;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&quot;&gt;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;사전-준비-사항&quot;&gt;사전 준비 사항&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;eksctl 설치
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brew tap weaveworks/tap
+brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;weaveworks/tap/eksctl
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;subnet-tag-추가&quot;&gt;subnet tag 추가&lt;/h2&gt;
+&lt;p&gt;Keycloak을 외부에서 사용하기에 Eks의 worker node는 사용하는  Subnet은 Public접근 허용해야 하며 &lt;br /&gt;
+ALB를 생성할수 있게  Subnet은 AWS에 정의한 Tag가 추가돼어야 한다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubernetes.io/role/elb
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/ingress/subget_tag.png&quot; alt=&quot;tag subnet!&quot; title=&quot;tag subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;iam-oidc-자격-증명-공급자&quot;&gt;IAM OIDC 자격 증명 공급자&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code&gt;
+eksctl utils associate-iam-oidc-provider --cluster &lt;mark&gt;MyEks&lt;/mark&gt; --approve
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;aws-load-balancer-controller-추가-기능-설치&quot;&gt;AWS Load Balancer Controller 추가 기능 설치&lt;/h2&gt;
+
+&lt;p&gt;AWS Load Balancer Controller의 IAM 정책을 다운로드&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;curl &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.3/docs/install/iam_policy.json
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;다운로드한 정책 JSON 파일 적용&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;aws iam create-policy &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;--policy-name&lt;/span&gt; AWSLoadBalancerControllerIAMPolicy &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;--policy-document&lt;/span&gt; iam_policy.json
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;클러스터의 OIDC 공급자 URL을 확인&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+aws eks describe-cluster --name &lt;mark&gt;MyEks&lt;/mark&gt; --query &quot;cluster.identity.oidc.issuer&quot; --output text
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;
+출력한 메세지 /id/뒤  &lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;를 복사한다.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+oidc.eks.ap-northeast-2.amazonaws.com/id/&lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;
+&lt;mark style=&quot;background-color: orange&quot;&gt;1111122223333&lt;/mark&gt;을 자신의  VPC ID로 바꿔주고 노락색으로 표시한부분 위에서 복사한 내용을 붙여준다.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+cat &amp;gt;load-balancer-role-trust-policy.json &amp;lt;&amp;lt;EOF
+{
+    &quot;Version&quot;: &quot;2012-10-17&quot;,
+    &quot;Statement&quot;: [
+        {
+            &quot;Effect&quot;: &quot;Allow&quot;,
+            &quot;Principal&quot;: {
+                &quot;Federated&quot;: &quot;arn:aws:iam::&lt;mark style=&quot;background-color: orange&quot;&gt;111122223333&lt;/mark&gt;:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE&quot;
+            },
+            &quot;Action&quot;: &quot;sts:AssumeRoleWithWebIdentity&quot;,
+            &quot;Condition&quot;: {
+                &quot;StringEquals&quot;: {
+                    &quot;oidc.eks.ap-northeast-2.amazonaws.com/id/&lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;:aud&quot;: &quot;sts.amazonaws.com&quot;,
+                    &quot;oidc.eks.ap-northeast-2.amazonaws.com/id/&lt;mark&gt;EXAMPLED539D4633E53DE1B71EXAMPLE&lt;/mark&gt;:sub&quot;: &quot;system:serviceaccount:kube-system:aws-load-balancer-controller&quot;
+                }
+            }
+        }
+    ]
+}
+EOF
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;
+load-balancer-role-trust-policy.json 파일을 통해 IAM 역할을 생성한다.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+aws iam create-role \
+  --role-name AmazonEKSLoadBalancerControllerRole \
+  --assume-role-policy-document load-balancer-role-trust-policy.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;
+&lt;mark style=&quot;background-color: orange&quot;&gt;1111122223333&lt;/mark&gt;을 자신의  VPC ID로 바꿔준다. IAM 약할과 적책을 연결해준다.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+aws iam attach-role-policy \
+  --policy-arn arn:aws:iam::&lt;mark style=&quot;background-color: orange&quot;&gt;111122223333&lt;/mark&gt;:policy/AWSLoadBalancerControllerIAMPolicy  \
+  --role-name AmazonEKSLoadBalancerControllerRole
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;mark style=&quot;background-color: orange&quot;&gt;1111122223333&lt;/mark&gt;을 자신의  VPC ID로 바꿔준다. loadbalancer yaml 파일을 생성한다&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+cat &amp;gt;aws-load-balancer-controller-service-account.yaml &amp;lt;&amp;lt;EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: aws-load-balancer-controller
+  name: aws-load-balancer-controller
+  namespace: kube-system
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::&lt;mark style=&quot;background-color: orange&quot;&gt;111122223333&lt;/mark&gt;:role/AmazonEKSLoadBalancerControllerRole
+EOF
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;
+적용하여 Eks에 service account을 생성해 준다.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+kubectl apply -f aws-load-balancer-controller-service-account.yaml
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;helm을-이용하여-aws-load-balancer-controller-배포&quot;&gt;Helm을 이용하여 AWS Load Balancer Controller 배포&lt;/h2&gt;
+&lt;p&gt;eks-charts 리포지토리를 추가&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm repo add eks https://aws.github.io/eks-charts
+helm repo update
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;aws ecr에 있는 이미지를 통해 ALB Controller를 배포 한다&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller   -n kube-system \
+--set clusterName=&lt;mark&gt;MyEks&lt;/mark&gt; \
+--set serviceAccount.create=false \
+--set serviceAccount.name=aws-load-balancer-controller \
+--set image.repository=602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/amazon/aws-load-balancer-controller
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;keycloak-ingress를-적용한다&quot;&gt;Keycloak Ingress를 적용한다&lt;/h2&gt;
+&lt;p&gt;https로 접근해야 하기에 alb에 사용할 인증서를  ACM에서 미리 만들어 줘야 한다.&lt;br /&gt;
+소스: &lt;a href=&quot;https://github.com/ooopsy/MyEks.git&quot;&gt;https://github.com/ooopsy/MyEks.git&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/listen-ports: '[{&quot;HTTP&quot;: 80}, {&quot;HTTPS&quot;:443}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:&lt;mark&gt;1111122223333&lt;/mark&gt;:certificate/&lt;mark&gt;aaaaaaab-bbbb-4ae8-90e6-447d9c880523&lt;/mark&gt;
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+spec:
+spec:
+  rules:
+  - host: sso.sad-waterdeer.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-keycloak-http
+            port:
+              number: 80
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;정상 적용 됐으면  ALB 생성됀것을 확인 할 수가 있다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/ingress/confirm_alb.png&quot; alt=&quot;tag subnet!&quot; title=&quot;tag subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><category term="키클락" /><category term="EKS" /><category term="Ingress" /><summary type="html">참조: https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/alb-ingress.html</summary></entry><entry><title type="html">Keycloak EKS 배포(Helm)</title><link href="https://www.sad-waterdeer.com/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html" rel="alternate" type="text/html" title="Keycloak EKS 배포(Helm)" /><published>2022-08-13T13:49:20+00:00</published><updated>2022-08-13T13:49:20+00:00</updated><id>https://www.sad-waterdeer.com/keycloak/2022/08/13/Keycloak%20EKS%20%EB%B0%B0%ED%8F%AC(Helm)</id><content type="html" xml:base="https://www.sad-waterdeer.com/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html">&lt;p&gt;Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus&lt;br /&gt;
+사용하지만 사용하는 오픈소스 Helm Chart는  17 까지만 지원하고 있어&lt;br /&gt;
+WildFy 버전 배포 진행. 
+&lt;br /&gt;
+Helm Chart: &lt;a href=&quot;https://github.com/codecentric/helm-charts/tree/master/charts/keycloak/&quot;&gt;https://github.com/codecentric/helm-charts/tree/master/charts/keycloak&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;사전-준비-mac&quot;&gt;사전 준비 (Mac)&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;kubectl 설치
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;kubectl
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;helm 설치
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;helm
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;aws cli 설치
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;aws iam authenticator 설치
+    &lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;aws-iam-authenticator 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;aws-관리자-계정-생성&quot;&gt;AWS 관리자 계정 생성&lt;/h2&gt;
+&lt;p&gt;IAM -&amp;gt; Users -&amp;gt; Add users   Access Key도 생성 해준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add_user.png&quot; alt=&quot;add user!&quot; title=&quot;add user&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;EKS 사용시 여러가지 권한이 필요하여 관리자 권한을 부여한다. &lt;br /&gt;
+아님 중간중간 권한이 부족하다고 오류난다.&lt;br /&gt;
+이하 모든 작업들은 새로 생성한 관리자 권한 계정으로 진행한다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add_user_admin.png&quot; alt=&quot;add user admin!&quot; title=&quot;add user admin&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt; Access key ID, Secret access key를 저장해둔다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add_user_secret.png&quot; alt=&quot;add user secret!&quot; title=&quot;add user secret&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;eks용--cluster-service-role-생성&quot;&gt;EKS용  Cluster Service Role 생성&lt;/h2&gt;
+&lt;p&gt;EKS용 Cluster Service Role을 생성 해 준다.   가이드: &lt;a href=&quot;https://docs.aws.amazon.com/eks/latest/userguide/service_IAM_role.html#create-service-role&quot;&gt;create-service-role&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add_eks_role.png&quot; alt=&quot;add eks role&quot; title=&quot;add eks role&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;eks-worker-node-role-생성&quot;&gt;EKS Worker Node Role 생성&lt;/h2&gt;
+&lt;p&gt;EKS Worker Node Role을  생성해 준다.   가이드: &lt;a href=&quot;https://docs.aws.amazon.com/eks/latest/userguide/create-node-role.html#create-worker-node-role&quot;&gt;Amazon EKS node IAM role&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/workerNode-role.png&quot; alt=&quot;add eks role&quot; title=&quot;add eks role&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;vpc-네트워크-설정&quot;&gt;VPC 네트워크 설정&lt;/h2&gt;
+&lt;h3 id=&quot;internet-gateway-생성&quot;&gt;Internet gateway 생성&lt;/h3&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/internetgateway.png&quot; alt=&quot;internetgateway&quot; title=&quot;internet gateway&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;privatepublic-route-table-생성&quot;&gt;Private/Public Route table 생성&lt;/h3&gt;
+
+&lt;p&gt;private route 생성&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/private-route.png&quot; alt=&quot;private route&quot; title=&quot;private route&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;public route 생성&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/public-route.png&quot; alt=&quot;public route&quot; title=&quot;public route&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;public route에 방금 생성한  Internet GateWay 추가&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/edit-public-route.png&quot; alt=&quot;edit public route&quot; title=&quot;edit public route&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/attach-gateway.png&quot; alt=&quot;attach gateway&quot; title=&quot;attach gateway&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;privatepublic-용--subnet-생성&quot;&gt;Private/Public 용  Subnet 생성&lt;/h3&gt;
+
+&lt;p&gt;예: VPC  IPv4  CIDR가 171.30.0.0/16  일때&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;route table&lt;/th&gt;
+      &lt;th&gt;subnet name&lt;/th&gt;
+      &lt;th&gt;Ipv4 CIDR&lt;/th&gt;
+      &lt;th&gt;Availability Zone&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;MyPrivateRouteTable&lt;/td&gt;
+      &lt;td&gt;MyPrivateSubnet-01&lt;/td&gt;
+      &lt;td&gt;171.30.1.0/24&lt;/td&gt;
+      &lt;td&gt;ap-northear-2a&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;MyPrivateRouteTable&lt;/td&gt;
+      &lt;td&gt;MyPrivateSubnet-02&lt;/td&gt;
+      &lt;td&gt;171.30.2.0/24&lt;/td&gt;
+      &lt;td&gt;ap-northear-2b&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;MyPublicRouteTable&lt;/td&gt;
+      &lt;td&gt;MyPublicSubnet-01&lt;/td&gt;
+      &lt;td&gt;171.30.3.0/24&lt;/td&gt;
+      &lt;td&gt;ap-northear-2a&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;MyPublicRouteTable&lt;/td&gt;
+      &lt;td&gt;MyPublicSubnet-04&lt;/td&gt;
+      &lt;td&gt;171.30.4.0/24&lt;/td&gt;
+      &lt;td&gt;ap-northear-2b&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h4 id=&quot;private-subnet-생성&quot;&gt;private subnet 생성&lt;/h4&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/private-subnet.png&quot; alt=&quot;private subnet&quot; title=&quot;private subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;public-subnet-생성&quot;&gt;public subnet 생성&lt;/h4&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/public-subnet.png&quot; alt=&quot;public subnet&quot; title=&quot;public subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;나중에 workNode 생성할때 public subnet에  EC2를 생성하기에&lt;br /&gt;
+자동 아이피 할당을 꼭 enable 해야 한다. 아님 오류 발생.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/enable-auto-ip.png&quot; alt=&quot;enable auto ip&quot; title=&quot;enable auto ip&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;subnet-route-매핑&quot;&gt;subnet-route 매핑&lt;/h4&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/mapping-route.png&quot; alt=&quot;mapping route&quot; title=&quot;mapping route&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;security-group-생성&quot;&gt;Security Group 생성&lt;/h2&gt;
+
+&lt;p&gt;EKS 인터넷 접근가능하게 해야 하고  DB는 VPC내에서만 접근 가능하게&lt;br /&gt;
+ Security Group을 생성한다.&lt;/p&gt;
+
+&lt;h3 id=&quot;eks용-퍼블릭-security-group-생성&quot;&gt;EKS용 퍼블릭 Security Group 생성&lt;/h3&gt;
+&lt;p&gt;참고: &lt;a href=&quot;https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/sec-group-reqs.html&quot;&gt;Amazon EKS 보안 그룹 요구 사항 및 고려 사항&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add_eks_security_group.png&quot; alt=&quot;eks public security group&quot; title=&quot;eks public security group&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;rds-용-security-group-생성&quot;&gt;RDS 용 Security Group 생성&lt;/h3&gt;
+&lt;p&gt;EKS 노드는  public subnet에 배치돼고 rds는 private subnet에 배치돼기 때문에 
+EKS 노드 RDS에 접근할수 있게 public subnet 아이피 3306포트만 뚫어 준다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/rds-security-group.png&quot; alt=&quot;rds security group&quot; title=&quot;rds security group&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;rds-생성&quot;&gt;RDS 생성&lt;/h2&gt;
+&lt;h3 id=&quot;subnet-group-생성&quot;&gt;Subnet Group 생성&lt;/h3&gt;
+&lt;p&gt;RDS 생성 때 필요한 SubnetGroup을 생성해 준다&lt;br /&gt;
+앞서 ap-northear-2a, ap-northear-2b 에 Private subnet group  생성 하기 때문에 선택해 준다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/subnet-group.png&quot; alt=&quot;subnet group&quot; title=&quot;subnet group&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;mysql-instance-생성&quot;&gt;Mysql Instance 생성&lt;/h3&gt;
+&lt;p&gt;DB 관라자 계정 및 스팩 선택 후&lt;br /&gt;
+생성할때 앞서 만든 Security Group 및 Subnet Group을 선택해준다&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/create-rds.png&quot; alt=&quot;create rds&quot; title=&quot;create rds&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;keycloak-tablespace-생성&quot;&gt;Keycloak Tablespace 생성&lt;/h3&gt;
+&lt;p&gt;RDS private subnet에 생성했기에 터널링이 필요하다.&lt;br /&gt;
+public subnet에 임시로 EC2 인스턴스 생성후 pem key 생성.&lt;br /&gt;
+pem key를 이용하여 터널링 방식으로  DB에 접근하여  schema 생성&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/tunnul.png&quot; alt=&quot;터널링&quot; title=&quot;터널링&quot; /&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;img src=&quot;/assets/images/eks/create-schema.png&quot; alt=&quot;터널링&quot; title=&quot;터널링&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;eks-생성&quot;&gt;EKS 생성&lt;/h2&gt;
+&lt;p&gt;앞서 생성한 Cluster Service Role를 선택해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/chosee-eks-cluster-role.png&quot; alt=&quot;chosee-eks-cluster-role.png&quot; title=&quot;chosee-eks-cluster-role&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;앞서 생성한  public subnet을 선택해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/eks-select-public-subnet.png&quot; alt=&quot;eks-select-public-subnet.png&quot; title=&quot;eks-select-public-subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;앞서 생성한  public security group을 선택해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/eks-select-public-security-group.png&quot; alt=&quot;eks-select-public-security-group&quot; title=&quot;eks-select-public-security-group&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;node-group을-생성한다&quot;&gt;Node group을 생성한다.&lt;/h3&gt;
+&lt;p&gt;앞서 생성한 Worker Node Role을 선택해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/select-node-group-role.png&quot; alt=&quot;select-node-group-role&quot; title=&quot;select-node-group-role&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;앞서 생성한  public subnet을 선택해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/node-select-public-subnet.png&quot; alt=&quot;node-select-public-subnet&quot; title=&quot;node-select-public-subnet&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;keycloak-helm-배포&quot;&gt;Keycloak Helm 배포&lt;/h2&gt;
+&lt;h3 id=&quot;aws-cli-계정-설정&quot;&gt;aws cli 계정 설정&lt;/h3&gt;
+&lt;p&gt;aws configure 명령어 실행후&lt;br /&gt;
+앞서 저장한 관리자 계정 Access key ID, Secret access key를 입력한다.&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;aws configure
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;aws sts get-caller-identity &lt;span class=&quot;c&quot;&gt;#적용됐는지 확인 &lt;/span&gt;
+aws eks update-kubeconfig &lt;span class=&quot;nt&quot;&gt;--name&lt;/span&gt; MyEks &lt;span class=&quot;nt&quot;&gt;--region&lt;/span&gt; ap-northeast-2  &lt;span class=&quot;c&quot;&gt;# .kube/config  파일 업데이트 해줌&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;db-연결-정보-설정&quot;&gt;DB 연결 정보 설정&lt;/h3&gt;
+&lt;p&gt;DB 연결정보, 포트, 스크마, 계정명을 configmap에 저장한다.&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl apply &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; configmap.yml 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;db.host&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;RDS앤드포인트&lt;/span&gt; 
+  &lt;span class=&quot;s&quot;&gt;db.port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;3306&quot;&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;db.schema&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;keycloak&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;db.user&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;RDS계정아이디&lt;/span&gt; 
+&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ConfigMap&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;annotations&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;creationTimestamp&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;2022-08-15T01:09:57Z&quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;my-config&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;namespace&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;default&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;resourceVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;13667&quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;daf633e8-5b82-4a1a-b09d-b8b11a8aa025&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;DB  계정 비밀번호 secret에 저장한다.&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl create secret generic my-secret &lt;span class=&quot;nt&quot;&gt;--from-literal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;db.password&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;비밀번호
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;helm-생성&quot;&gt;Helm 생성&lt;/h3&gt;
+&lt;p&gt;Helm 생성&lt;br /&gt;
+templates 하위에 있는 파일들 아직 안쓰니까 전부 날린다.&lt;br /&gt;
+Keycloak 오픈소스 Helm Chart 저장소 추가&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm repo add codecentric https://codecentric.github.io/helm-charts &lt;span class=&quot;c&quot;&gt;# add open source helm chart repository&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm create my-keycloak
+&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;my-keycloak 
+vi Chart.yaml 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;
+Chart.yaml에 keycloak dependency 추가&lt;/p&gt;
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v2&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;my-keycloak&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;A Helm chart for Kubernetes&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;application&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;0.1.0&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;appVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;1.16.0&quot;&lt;/span&gt;
+
+&lt;span class=&quot;na&quot;&gt;dependencies&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;keycloak&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;18.3.0&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;repository&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@codecentric&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;values.yaml 정보 입력 service.type  LoadBalancer로 지정&lt;/p&gt;
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;keycloak&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;fullname&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;my-keycloak&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;cli&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;ingress&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;postgresql&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;service&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;LoadBalancer&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;80&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;extraEnv&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;pi&quot;&gt;|&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_VENDOR&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;value: mysql&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_ADDR&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;valueFrom:&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;configMapKeyRef:&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;name: my-config           &lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;key: db.host&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_PORT&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;valueFrom:&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;configMapKeyRef:&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;name: my-config           &lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;key: db.port&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_DATABASE&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;valueFrom:&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;configMapKeyRef:&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;name: my-config           &lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;key: db.schema&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_USER&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;valueFrom:&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;configMapKeyRef:&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;name: my-config           &lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;key: db.user&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;- name: DB_PASSWORD&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;valueFrom:&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;secretKeyRef:&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;name: my-secret&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;key: db.password&lt;/span&gt;
+          &lt;span class=&quot;s&quot;&gt;optional: false &lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;dependency 빌드&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm dependency build
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&quot;helm-install&quot;&gt;Helm install&lt;/h3&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;helm &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;my-keycloak my-keycloak
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;도메인-설정&quot;&gt;도메인 설정&lt;/h2&gt;
+&lt;p&gt;route 53 A record에 EKS 생성해준 ELB Endpoint 매핑 설정해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/route53-elb.png&quot; alt=&quot;route53-elb&quot; title=&quot;route53-elb&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;elb-용-acm-생성&quot;&gt;ELB 용 ACM 생성&lt;/h3&gt;
+&lt;p&gt;ACM 에서 인증서 추가&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add-acm.png&quot; alt=&quot;add-acm&quot; title=&quot;add-acm&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;route 53애 인증서 Validation CNAME 레코드 추가&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/cname-value.png&quot; alt=&quot;cname-value&quot; title=&quot;cname-value&quot; /&gt; &lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;img src=&quot;/assets/images/eks/add-c-record.png&quot; alt=&quot;add-c-record&quot; title=&quot;add-c-record&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;ELB에 인증서를 걸어 준다&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/eks/add-1.png&quot; alt=&quot;add-1&quot; title=&quot;add-1&quot; /&gt; &lt;br /&gt;
+&lt;img src=&quot;/assets/images/eks/add-2.png&quot; alt=&quot;add-2&quot; title=&quot;add-2&quot; /&gt; &lt;br /&gt;
+&lt;img src=&quot;/assets/images/eks/add-3.png&quot; alt=&quot;add-3&quot; title=&quot;add-3&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;서버-초기화&quot;&gt;서버 초기화&lt;/h2&gt;
+&lt;p&gt;Keycloak master 사용자 초기화&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-it&lt;/span&gt; my-keycloak-0 &lt;span class=&quot;nt&quot;&gt;--&lt;/span&gt; /bin/bash &lt;span class=&quot;c&quot;&gt;# POD 진입&lt;/span&gt;
+/opt/jboss/keycloak/bin/add-user-keycloak.sh &lt;span class=&quot;nt&quot;&gt;-r&lt;/span&gt; master &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt; oopsy1988 &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 비밀번호   &lt;span class=&quot;c&quot;&gt;# master 사용자 추가 &lt;/span&gt;
+/opt/jboss/keycloak/bin/jboss-cli.sh &lt;span class=&quot;nt&quot;&gt;--connect&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;command&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;:reload  &lt;span class=&quot;c&quot;&gt;# 서버 재시작  &lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><category term="키클락" /><category term="EKS" /><category term="Helm" /><summary type="html">Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus 사용하지만 사용하는 오픈소스 Helm Chart는 17 까지만 지원하고 있어 WildFy 버전 배포 진행. Helm Chart: https://github.com/codecentric/helm-charts/tree/master/charts/keycloak</summary></entry><entry><title type="html">Keycloak 카카오 로그인 연동</title><link href="https://www.sad-waterdeer.com/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" rel="alternate" type="text/html" title="Keycloak 카카오 로그인 연동" /><published>2022-08-05T13:49:20+00:00</published><updated>2022-08-05T13:49:20+00:00</updated><id>https://www.sad-waterdeer.com/keycloak/2022/08/05/Keycloak%20%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1%20%EB%A1%9C%EA%B7%B8%EC%9D%B8</id><content type="html" xml:base="https://www.sad-waterdeer.com/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html">&lt;p&gt;카카오 로그인 22년 3월부터 OIDC를 지원하게 돼어 keycloak과&lt;br /&gt;
+별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다.&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;카카오 개발자 센터에서 앱을 먼저 생성한다.&lt;br /&gt;
+홈페이지: &lt;a href=&quot;https://developers.kakao.com/&quot;&gt;https://developers.kakao.com&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;비즈 앱 생성 안해도 돼지만 카카오 아이디 외  토큰에 이메일, 닉네임 등 다른&lt;br /&gt;
+정보를 받을 수가 없어 사업자 등록 번호로 비즈 앱을 생성해준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao//bizapp.png&quot; alt=&quot;bizapp!&quot; title=&quot;bizapp&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;카카오 로그인 메뉴에서  로그인 기능 및  OpenIDConnect 활성화 설정을 On&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao//basic_settting.png&quot; alt=&quot;basic setting!&quot; title=&quot;basic setting&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;동의항목에서 카카오 아이디 및 이메일 외 추가로 받고 싶은 필드들을 활성화 해준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao//agree.png&quot; alt=&quot;agree!&quot; title=&quot;agree&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;Keycloak 관리자 콘솔에서 Identity providers -&amp;gt; OpenID Connect v1.0을 선택한다&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao//keycloak_idp.png&quot; alt=&quot;chose keycloak menu!&quot; title=&quot;chose keycloak menu&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; Discovery endpoint에 카카오 메타 정보를 입력해준다.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://kauth.kakao.com/.well-known/openid-configuration
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/insert_meta.png&quot; alt=&quot;insert meta!&quot; title=&quot;insert meta&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; Redirect URI를 카카오 로그인 메뉴의 Redirect URI에 등록 해준다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;http://localhost:8080/realms/MY/broker/oidc/endpoint
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/keycloak_redirect_url.png&quot; alt=&quot;keycloak_redirect_url!&quot; /&gt;&lt;br /&gt;
+&lt;img src=&quot;/assets/images/kakao/kakao_redirecturi.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; Client ID에  카카오 앱키 REST API 키를 입력한다.&lt;br /&gt;
+카카오는 secret key는 필수가 아님으로 Client Secret는 의미로 입력하면 됀다.&lt;br /&gt;
+필요하다면 보안 메뉴에서 Client secret 코드를 생성할 수 있다.
+입력 완료후 저장하면 해당 Realm 관리자 콘솔에 접속하여 카카오 로그인 버튼이 생성됀거를 확인 할수 있다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/kakao_app_key.png&quot; alt=&quot;kakao app key!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/keycloak_client_id.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/login_page.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; 앞서 동의항목에서 추가로 활성화한 필드들을 사용자 정보에 저장하고  싶으면&lt;br /&gt;
+Mappers에 등록해 준다.&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/mappers.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/mapper_detail.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt; 카카오 로그인을 통해 생성한 계정의 계정 정보에서 Mapper로 등록한 필드들이&lt;br /&gt;
+User Attribute에 추가됀것을 확인할 수 있다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/images/kakao/user_attribute.png&quot; alt=&quot;kakao redirect_url!&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><category term="카카오로그인" /><summary type="html">카카오 로그인 22년 3월부터 OIDC를 지원하게 돼어 keycloak과 별도의 plugin 설치할 필요 없이 바로 연결 가능하게 돼었다.</summary></entry><entry><title type="html">Keycloak 로컬 설치</title><link href="https://www.sad-waterdeer.com/keycloak/2022/08/04/Keycloak-%EB%A1%9C%EC%BB%AC-%EC%84%A4%EC%B9%98.html" rel="alternate" type="text/html" title="Keycloak 로컬 설치" /><published>2022-08-04T13:49:20+00:00</published><updated>2022-08-04T13:49:20+00:00</updated><id>https://www.sad-waterdeer.com/keycloak/2022/08/04/Keycloak%20%EB%A1%9C%EC%BB%AC%20%EC%84%A4%EC%B9%98</id><content type="html" xml:base="https://www.sad-waterdeer.com/keycloak/2022/08/04/Keycloak-%EB%A1%9C%EC%BB%AC-%EC%84%A4%EC%B9%98.html">&lt;p&gt;다운로드:   &lt;a href=&quot;https://www.keycloak.org/downloads&quot;&gt;https://www.keycloak.org/downloads&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Keycloak  19 버전 부터  JDK 11 이상만 지원한다.&lt;br /&gt;
+JAVA_HOME을 참조하고 있어 JAVA_HOME이 11 이상으로 제대로 설정돼 있는지 확인해야 한다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img align=&quot;left&quot; src=&quot;/assets/images/install_java_home.png&quot; /&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img align=&quot;left&quot; src=&quot;/assets/images/check_java_version.png&quot; /&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;keycloak 다운로드 및 압축 해제후 Keycloak 사용할 scheme 생성후 디비연결 정보를 수정한다.&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vi /Users/cheng.lee/tool/keycloak-19.0.1/conf
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;keycloak은 현재 mariadb, mssql, mysql, oracle, postgres를 지원하고 있다.&lt;br /&gt;
+mysql 사용할란다. db-url은 characterEncoding=UTF-8 파라미터 꼭 붙여 줘야한다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/db_config.png&quot; alt=&quot;config db!&quot; title=&quot;config db&quot; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;이제 keycloak을 실행 해준다.&lt;/p&gt;
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; /Users/cheng.lee/tool/keycloak-19.0.1/bin
+./kc.sh start-dev
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;http://localhost:8080에 접속하여 관리자계정을 생성해준다.
+&lt;img src=&quot;/assets/images/admin_setup.png&quot; alt=&quot;config db!&quot; title=&quot;config db&quot; /&gt;&lt;/p&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><summary type="html">다운로드: https://www.keycloak.org/downloads</summary></entry><entry><title type="html">Keycloak이란</title><link href="https://www.sad-waterdeer.com/keycloak/2022/07/23/Keycloak-%EC%9D%B4%EB%9E%80.html" rel="alternate" type="text/html" title="Keycloak이란" /><published>2022-07-23T13:49:20+00:00</published><updated>2022-07-23T13:49:20+00:00</updated><id>https://www.sad-waterdeer.com/keycloak/2022/07/23/Keycloak%20%EC%9D%B4%EB%9E%80</id><content type="html" xml:base="https://www.sad-waterdeer.com/keycloak/2022/07/23/Keycloak-%EC%9D%B4%EB%9E%80.html">&lt;p&gt;Keycloak은  Web 어플리케이션 및  Restful  API 서비스의 인증 기능을 제공하는 솔루션이다.&lt;br /&gt;
+JBoss의  JAVA(OpenJDK &amp;gt;= 11) 오픈소스(Apache License2.0) 프로젝트이고 &lt;del&gt;Wildfly&lt;/del&gt;&lt;br /&gt;
+19버전 부터 더 이상  Wildfy 웹서버를 폐기하고 Quarkus라는 새로운 프레임워크를 사용한다.&lt;/p&gt;
+
+&lt;p&gt;홈페이지:  &lt;a href=&quot;https://www.keycloak.org/&quot;&gt;https://www.keycloak.org/&lt;/a&gt;&lt;br /&gt;
+Git: &lt;a href=&quot;https://github.com/keycloak/keycloak/&quot;&gt;https://github.com/keycloak/keycloak&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;주요 기능 :&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;SSO 을 위한 표준  프로토콜 제공
+    &lt;ol&gt;
+      &lt;li&gt;OICD (Oauth 2.0)&lt;/li&gt;
+      &lt;li&gt;SAML 2.0&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Third Party 통한 로그인 기능 제고
+    &lt;ol&gt;
+      &lt;li&gt;Github, Google, Facebook, LinkedIn 등등…&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;MFA 지원(OTP)
+    &lt;ol&gt;
+      &lt;li&gt;Google Authentication, FreeOtp&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;인증서버를 관리 할수 있는 관리자 화면 제공
+    &lt;ol&gt;
+      &lt;li&gt;사용자 관리&lt;/li&gt;
+      &lt;li&gt;그룹 관리&lt;/li&gt;
+      &lt;li&gt;역할 관리&lt;/li&gt;
+      &lt;li&gt;OICD, SAML에 표준에 정의한 클라이언트(Client), 클라이언트 스콥(Client Scope) 관리&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Realm이라는 개념이 존재하여  멀티테넌시 지원&lt;/li&gt;
+  &lt;li&gt;확장기능 제공
+    &lt;ol&gt;
+      &lt;li&gt;Theme를 추가하여로그인 및 회원 가입 화면  커스텀 가능&lt;/li&gt;
+      &lt;li&gt;SPI(Service Provider Interface) 를 추가 개발 하여 인증 서버단 커스텀 기능 추가 가능&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Keycloak을 인증서버로 사용하는 프로젝트들이  쉽게 연동 할수 있게 여러 가지 어댑터 제공
+    &lt;ol&gt;
+      &lt;li&gt;SpringBoot, Tomcat Filter, Javascript 등등…&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Restful API 서버에서 사용하는 인가(Authorization)기능 제공(RBAC)&lt;/li&gt;
+  &lt;li&gt;클라우드 환경에 친화적
+    &lt;ol&gt;
+      &lt;li&gt;내부 캐싱은 Infinispan을 사용하고 있어 자유롭게 Scale In/Out 가능&lt;/li&gt;
+      &lt;li&gt;공식 Docker 이미지 제공&lt;/li&gt;
+      &lt;li&gt;오픈 소스 Helm Chart 프로젝트 존재함.&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;</content><author><name></name></author><category term="Keycloak" /><category term="SSO" /><category term="통합인증" /><category term="Keycloak" /><summary type="html">Keycloak은 Web 어플리케이션 및 Restful API 서비스의 인증 기능을 제공하는 솔루션이다. JBoss의 JAVA(OpenJDK &amp;gt;= 11) 오픈소스(Apache License2.0) 프로젝트이고 Wildfly 19버전 부터 더 이상 Wildfy 웹서버를 폐기하고 Quarkus라는 새로운 프레임워크를 사용한다.</summary></entry><entry><title type="html">Hello world! this is my first post.</title><link href="https://www.sad-waterdeer.com/hello/2022/07/20/my-first-post.html" rel="alternate" type="text/html" title="Hello world! this is my first post." /><published>2022-07-20T13:49:20+00:00</published><updated>2022-07-20T13:49:20+00:00</updated><id>https://www.sad-waterdeer.com/hello/2022/07/20/my-first-post</id><content type="html" xml:base="https://www.sad-waterdeer.com/hello/2022/07/20/my-first-post.html">&lt;h1 id=&quot;dillinger&quot;&gt;Dillinger&lt;/h1&gt;
+&lt;h2 id=&quot;the-last-markdown-editor-ever&quot;&gt;&lt;em&gt;The Last Markdown Editor, Ever&lt;/em&gt;&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;[![N&lt;/td&gt;
+      &lt;td&gt;Solid](https://cldup.com/dTxpPi9lDf.thumb.png)](https://nodesource.com/products/nsolid)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://travis-ci.org/joemccann/dillinger&quot;&gt;&lt;img src=&quot;https://travis-ci.org/joemccann/dillinger.svg?branch=master&quot; alt=&quot;Build Status&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Dillinger is a cloud-enabled, mobile-ready, offline-storage compatible,
+AngularJS-powered HTML5 Markdown editor.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Type some Markdown on the left&lt;/li&gt;
+  &lt;li&gt;See HTML in the right&lt;/li&gt;
+  &lt;li&gt;✨Magic ✨&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;features&quot;&gt;Features&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Import a HTML file and watch it magically convert to Markdown&lt;/li&gt;
+  &lt;li&gt;Drag and drop images (requires your Dropbox account be linked)&lt;/li&gt;
+  &lt;li&gt;Import and save files from GitHub, Dropbox, Google Drive and One Drive&lt;/li&gt;
+  &lt;li&gt;Drag and drop markdown and HTML files into Dillinger&lt;/li&gt;
+  &lt;li&gt;Export documents as Markdown, HTML and PDF&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Markdown is a lightweight markup language based on the formatting conventions
+that people naturally use in email.
+As &lt;a href=&quot;http://daringfireball.net&quot;&gt;John Gruber&lt;/a&gt; writes on the &lt;a href=&quot;http://daringfireball.net/projects/markdown/&quot;&gt;Markdown site&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;The overriding design goal for Markdown’s
+formatting syntax is to make it as readable
+as possible. The idea is that a
+Markdown-formatted document should be
+publishable as-is, as plain text, without
+looking like it’s been marked up with tags
+or formatting instructions.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This text you see here is *actually- written in Markdown! To get a feel
+for Markdown’s syntax, type some text into the left window and
+watch the results in the right.&lt;/p&gt;
+
+&lt;h2 id=&quot;tech&quot;&gt;Tech&lt;/h2&gt;
+
+&lt;p&gt;Dillinger uses a number of open source projects to work properly:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://angularjs.org&quot;&gt;AngularJS&lt;/a&gt; - HTML enhanced for web apps!&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://ace.ajax.org&quot;&gt;Ace Editor&lt;/a&gt; - awesome web-based text editor&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/markdown-it/markdown-it&quot;&gt;markdown-it&lt;/a&gt; - Markdown parser done right. Fast and easy to extend.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://twitter.github.com/bootstrap/&quot;&gt;Twitter Bootstrap&lt;/a&gt; - great UI boilerplate for modern web apps&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://nodejs.org&quot;&gt;node.js&lt;/a&gt; - evented I/O for the backend&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://expressjs.com&quot;&gt;Express&lt;/a&gt; - fast node.js network app framework &lt;a href=&quot;http://twitter.com/tjholowaychuk&quot;&gt;@tjholowaychuk&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://gulpjs.com&quot;&gt;Gulp&lt;/a&gt; - the streaming build system&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://breakdance.github.io/breakdance/&quot;&gt;Breakdance&lt;/a&gt; - HTML
+to Markdown converter&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://jquery.com&quot;&gt;jQuery&lt;/a&gt; - duh&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;And of course Dillinger itself is open source with a &lt;a href=&quot;https://github.com/joemccann/dillinger&quot;&gt;public repository&lt;/a&gt;
+ on GitHub.&lt;/p&gt;
+
+&lt;h2 id=&quot;installation&quot;&gt;Installation&lt;/h2&gt;
+
+&lt;p&gt;Dillinger requires &lt;a href=&quot;https://nodejs.org/&quot;&gt;Node.js&lt;/a&gt; v10+ to run.&lt;/p&gt;
+
+&lt;p&gt;Install the dependencies and devDependencies and start the server.&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;dillinger
+npm i
+node app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;For production environments…&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;npm &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--production&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;NODE_ENV&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;production node app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;plugins&quot;&gt;Plugins&lt;/h2&gt;
+
+&lt;p&gt;Dillinger is currently extended with the following plugins.
+Instructions on how to use them in your own application are linked below.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Plugin&lt;/th&gt;
+      &lt;th&gt;README&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Dropbox&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/joemccann/dillinger/tree/master/plugins/dropbox/README.md&quot;&gt;plugins/dropbox/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;GitHub&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/joemccann/dillinger/tree/master/plugins/github/README.md&quot;&gt;plugins/github/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Google Drive&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/joemccann/dillinger/tree/master/plugins/googledrive/README.md&quot;&gt;plugins/googledrive/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;OneDrive&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/joemccann/dillinger/tree/master/plugins/onedrive/README.md&quot;&gt;plugins/onedrive/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Medium&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/joemccann/dillinger/tree/master/plugins/medium/README.md&quot;&gt;plugins/medium/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Google Analytics&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://github.com/RahulHP/dillinger/blob/master/plugins/googleanalytics/README.md&quot;&gt;plugins/googleanalytics/README.md&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;development&quot;&gt;Development&lt;/h2&gt;
+
+&lt;p&gt;Want to contribute? Great!&lt;/p&gt;
+
+&lt;p&gt;Dillinger uses Gulp + Webpack for fast developing.
+Make a change in your file and instantaneously see your updates!&lt;/p&gt;
+
+&lt;p&gt;Open your favorite Terminal and run these commands.&lt;/p&gt;
+
+&lt;p&gt;First Tab:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;node app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Second Tab:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gulp watch
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;(optional) Third:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;karma &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;building-for-source&quot;&gt;Building for source&lt;/h4&gt;
+
+&lt;p&gt;For production release:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gulp build &lt;span class=&quot;nt&quot;&gt;--prod&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Generating pre-built zip archives for distribution:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gulp build dist &lt;span class=&quot;nt&quot;&gt;--prod&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;docker&quot;&gt;Docker&lt;/h2&gt;
+
+&lt;p&gt;Dillinger is very easy to install and deploy in a Docker container.&lt;/p&gt;
+
+&lt;p&gt;By default, the Docker will expose port 8080, so change this within the
+Dockerfile if necessary. When ready, simply use the Dockerfile to
+build the image.&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;dillinger
+docker build &lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt; &amp;lt;youruser&amp;gt;/dillinger:&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.json.version&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This will create the dillinger image and pull in the necessary dependencies.
+Be sure to swap out &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;${package.json.version}&lt;/code&gt; with the actual
+version of Dillinger.&lt;/p&gt;
+
+&lt;p&gt;Once done, run the Docker image and map the port to whatever you wish on
+your host. In this example, we simply map port 8000 of the host to
+port 8080 of the Docker (or whatever port was exposed in the Dockerfile):&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;docker run &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 8000:8080 &lt;span class=&quot;nt&quot;&gt;--restart&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;always &lt;span class=&quot;nt&quot;&gt;--cap-add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;SYS_ADMIN &lt;span class=&quot;nt&quot;&gt;--name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;dillinger &amp;lt;youruser&amp;gt;/dillinger:&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.json.version&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Note: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--capt-add=SYS-ADMIN&lt;/code&gt; is required for PDF rendering.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Verify the deployment by navigating to your server address in
+your preferred browser.&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;127.0.0.1:8000
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;license&quot;&gt;License&lt;/h2&gt;
+
+&lt;p&gt;MIT&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Free Software, Hell Yeah!&lt;/strong&gt;&lt;/p&gt;</content><author><name></name></author><category term="Hello" /><summary type="html">Dillinger The Last Markdown Editor, Ever [![N Solid](https://cldup.com/dTxpPi9lDf.thumb.png)](https://nodesource.com/products/nsolid) Dillinger is a cloud-enabled, mobile-ready, offline-storage compatible, AngularJS-powered HTML5 Markdown editor. Type some Markdown on the left See HTML in the right ✨Magic ✨ Features Import a HTML file and watch it magically convert to Markdown Drag and drop images (requires your Dropbox account be linked) Import and save files from GitHub, Dropbox, Google Drive and One Drive Drag and drop markdown and HTML files into Dillinger Export documents as Markdown, HTML and PDF Markdown is a lightweight markup language based on the formatting conventions that people naturally use in email. As John Gruber writes on the Markdown site The overriding design goal for Markdown’s formatting syntax is to make it as readable as possible. The idea is that a Markdown-formatted document should be publishable as-is, as plain text, without looking like it’s been marked up with tags or formatting instructions. This text you see here is *actually- written in Markdown! To get a feel for Markdown’s syntax, type some text into the left window and watch the results in the right. Tech Dillinger uses a number of open source projects to work properly: AngularJS - HTML enhanced for web apps! Ace Editor - awesome web-based text editor markdown-it - Markdown parser done right. Fast and easy to extend. Twitter Bootstrap - great UI boilerplate for modern web apps node.js - evented I/O for the backend Express - fast node.js network app framework @tjholowaychuk Gulp - the streaming build system Breakdance - HTML to Markdown converter jQuery - duh And of course Dillinger itself is open source with a public repository on GitHub. Installation Dillinger requires Node.js v10+ to run. Install the dependencies and devDependencies and start the server. cd dillinger npm i node app For production environments… npm install --production NODE_ENV=production node app Plugins Dillinger is currently extended with the following plugins. Instructions on how to use them in your own application are linked below. Plugin README Dropbox plugins/dropbox/README.md GitHub plugins/github/README.md Google Drive plugins/googledrive/README.md OneDrive plugins/onedrive/README.md Medium plugins/medium/README.md Google Analytics plugins/googleanalytics/README.md Development Want to contribute? Great! Dillinger uses Gulp + Webpack for fast developing. Make a change in your file and instantaneously see your updates! Open your favorite Terminal and run these commands. First Tab: node app Second Tab: gulp watch (optional) Third: karma test Building for source For production release: gulp build --prod Generating pre-built zip archives for distribution: gulp build dist --prod Docker Dillinger is very easy to install and deploy in a Docker container. By default, the Docker will expose port 8080, so change this within the Dockerfile if necessary. When ready, simply use the Dockerfile to build the image. cd dillinger docker build -t &amp;lt;youruser&amp;gt;/dillinger:${package.json.version} . This will create the dillinger image and pull in the necessary dependencies. Be sure to swap out ${package.json.version} with the actual version of Dillinger. Once done, run the Docker image and map the port to whatever you wish on your host. In this example, we simply map port 8000 of the host to port 8080 of the Docker (or whatever port was exposed in the Dockerfile): docker run -d -p 8000:8080 --restart=always --cap-add=SYS_ADMIN --name=dillinger &amp;lt;youruser&amp;gt;/dillinger:${package.json.version} Note: --capt-add=SYS-ADMIN is required for PDF rendering. Verify the deployment by navigating to your server address in your preferred browser. 127.0.0.1:8000 License MIT Free Software, Hell Yeah!</summary></entry></feed>

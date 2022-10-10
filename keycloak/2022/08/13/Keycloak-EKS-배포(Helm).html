@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c"></meta><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Keycloak EKS 배포(Helm) | Try to keep code clean</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Keycloak EKS 배포(Helm)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus 사용하지만 사용하는 오픈소스 Helm Chart는 17 까지만 지원하고 있어 WildFy 버전 배포 진행. Helm Chart: https://github.com/codecentric/helm-charts/tree/master/charts/keycloak" />
+<meta property="og:description" content="Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus 사용하지만 사용하는 오픈소스 Helm Chart는 17 까지만 지원하고 있어 WildFy 버전 배포 진행. Helm Chart: https://github.com/codecentric/helm-charts/tree/master/charts/keycloak" />
+<link rel="canonical" href="https://www.sad-waterdeer.com/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html" />
+<meta property="og:url" content="https://www.sad-waterdeer.com/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html" />
+<meta property="og:site_name" content="Try to keep code clean" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-08-13T13:49:20+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Keycloak EKS 배포(Helm)" />
+<script type="application/ld+json">
+{"url":"https://www.sad-waterdeer.com/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html","headline":"Keycloak EKS 배포(Helm)","dateModified":"2022-08-13T13:49:20+00:00","datePublished":"2022-08-13T13:49:20+00:00","description":"Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus 사용하지만 사용하는 오픈소스 Helm Chart는 17 까지만 지원하고 있어 WildFy 버전 배포 진행. Helm Chart: https://github.com/codecentric/helm-charts/tree/master/charts/keycloak","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.sad-waterdeer.com/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="shortcut icon" href="/assets/ico.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="https://www.sad-waterdeer.com/feed.xml" title="Try to keep code clean" /><script async src="https://www.googletagmanager.com/gtag/js?id=G-VWTNZNGPP6"></script>
+<script>
+  function initGoogleAnalytics() {
+    var doNotTrack = (window.doNotTrack === "1" || navigator.doNotTrack === "1" ||
+      navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1");
+    var enableDNT = "true" == "true";
+
+    if (!enableDNT || !doNotTrack) {
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-VWTNZNGPP6');
+        }
+  }
+  window.addEventListener("load", initGoogleAnalytics);
+</script><link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8"
+        src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner"><span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+    Try to keep code clean
+  </a></span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewBox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger"><a class="page-link" href="/about.html">ABOUT</a><a class="page-link" href="/archives.html">ARCHIVES</a><a class="page-link" href="/categories%20copy.html">CATEGORIES</a><a class="page-link" href="/categories.html">CATEGORIES</a><a class="page-link" href="/tags.html">TAGS</a>
+
+
+
+
+</div>
+        </nav></div>
+  </div>
+</header>
+
+<script>
+  (function() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  })();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('auto' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <script src="/assets/js/jquery-3.5.1.js"></script>
+<script src="/assets/js/jquery.magnific-popup.js"></script>
+<script src="/assets/js/magnific-popup-setting.js"></script>
+<link rel="stylesheet" href="/assets/css//magnific-popup.css">
+<div class="post">
+<div class="post">
+  <section>
+
+
+
+
+
+
+
+
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">Keycloak EKS 배포(Helm)</h1>
+  <h2 class="post-subtitle"></h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2022-08-13T13:49:20+00:00" itemprop="datePublished"><i class="fa fa-calendar"></i> 2022 08 13
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> About 8 mins</span>
+  </p><div class="post-tags"><a class="post-tag" href="/tags.html#SSO">#SSO</a><a class="post-tag" href="/tags.html#통합인증">#통합인증</a><a class="post-tag" href="/tags.html#Keycloak">#Keycloak</a><a class="post-tag" href="/tags.html#키클락">#키클락</a><a class="post-tag" href="/tags.html#EKS">#EKS</a><a class="post-tag" href="/tags.html#Helm">#Helm</a></div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <p>Keycloak 19부터 Wildfy를 더 이상 사용하지 않고 Quarkus<br />
+사용하지만 사용하는 오픈소스 Helm Chart는  17 까지만 지원하고 있어<br />
+WildFy 버전 배포 진행. 
+<br />
+Helm Chart: <a href="https://github.com/codecentric/helm-charts/tree/master/charts/keycloak/">https://github.com/codecentric/helm-charts/tree/master/charts/keycloak</a></p>
+
+<hr />
+
+<h2 id="사전-준비-mac">사전 준비 (Mac)</h2>
+<ol>
+  <li>kubectl 설치
+    <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>kubectl
+</code></pre></div>    </div>
+  </li>
+  <li>helm 설치
+    <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>helm
+</code></pre></div>    </div>
+  </li>
+  <li>aws cli 설치
+    <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+</code></pre></div>    </div>
+  </li>
+  <li>aws iam authenticator 설치
+    <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>aws-iam-authenticator 
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h2 id="aws-관리자-계정-생성">AWS 관리자 계정 생성</h2>
+<p>IAM -&gt; Users -&gt; Add users   Access Key도 생성 해준다.</p>
+<blockquote>
+  <p><img src="/assets/images/eks/add_user.png" alt="add user!" title="add user" /></p>
+</blockquote>
+
+<p><br />EKS 사용시 여러가지 권한이 필요하여 관리자 권한을 부여한다. <br />
+아님 중간중간 권한이 부족하다고 오류난다.<br />
+이하 모든 작업들은 새로 생성한 관리자 권한 계정으로 진행한다.</p>
+
+<blockquote>
+  <p><img src="/assets/images/eks/add_user_admin.png" alt="add user admin!" title="add user admin" /></p>
+</blockquote>
+
+<p><br /> Access key ID, Secret access key를 저장해둔다.</p>
+<blockquote>
+  <p><img src="/assets/images/eks/add_user_secret.png" alt="add user secret!" title="add user secret" /></p>
+</blockquote>
+
+<h2 id="eks용--cluster-service-role-생성">EKS용  Cluster Service Role 생성</h2>
+<p>EKS용 Cluster Service Role을 생성 해 준다.   가이드: <a href="https://docs.aws.amazon.com/eks/latest/userguide/service_IAM_role.html#create-service-role">create-service-role</a></p>
+<blockquote>
+  <p><img src="/assets/images/eks/add_eks_role.png" alt="add eks role" title="add eks role" /></p>
+</blockquote>
+
+<h2 id="eks-worker-node-role-생성">EKS Worker Node Role 생성</h2>
+<p>EKS Worker Node Role을  생성해 준다.   가이드: <a href="https://docs.aws.amazon.com/eks/latest/userguide/create-node-role.html#create-worker-node-role">Amazon EKS node IAM role</a></p>
+<blockquote>
+  <p><img src="/assets/images/eks/workerNode-role.png" alt="add eks role" title="add eks role" /></p>
+</blockquote>
+
+<h2 id="vpc-네트워크-설정">VPC 네트워크 설정</h2>
+<h3 id="internet-gateway-생성">Internet gateway 생성</h3>
+<blockquote>
+  <p><img src="/assets/images/eks/internetgateway.png" alt="internetgateway" title="internet gateway" /></p>
+</blockquote>
+
+<h3 id="privatepublic-route-table-생성">Private/Public Route table 생성</h3>
+
+<p>private route 생성</p>
+<blockquote>
+  <p><img src="/assets/images/eks/private-route.png" alt="private route" title="private route" /></p>
+</blockquote>
+
+<p>public route 생성</p>
+<blockquote>
+  <p><img src="/assets/images/eks/public-route.png" alt="public route" title="public route" /></p>
+</blockquote>
+
+<p>public route에 방금 생성한  Internet GateWay 추가</p>
+<blockquote>
+  <p><img src="/assets/images/eks/edit-public-route.png" alt="edit public route" title="edit public route" /></p>
+</blockquote>
+
+<blockquote>
+  <p><img src="/assets/images/eks/attach-gateway.png" alt="attach gateway" title="attach gateway" /></p>
+</blockquote>
+
+<h3 id="privatepublic-용--subnet-생성">Private/Public 용  Subnet 생성</h3>
+
+<p>예: VPC  IPv4  CIDR가 171.30.0.0/16  일때</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>route table</th>
+      <th>subnet name</th>
+      <th>Ipv4 CIDR</th>
+      <th>Availability Zone</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MyPrivateRouteTable</td>
+      <td>MyPrivateSubnet-01</td>
+      <td>171.30.1.0/24</td>
+      <td>ap-northear-2a</td>
+    </tr>
+    <tr>
+      <td>MyPrivateRouteTable</td>
+      <td>MyPrivateSubnet-02</td>
+      <td>171.30.2.0/24</td>
+      <td>ap-northear-2b</td>
+    </tr>
+    <tr>
+      <td>MyPublicRouteTable</td>
+      <td>MyPublicSubnet-01</td>
+      <td>171.30.3.0/24</td>
+      <td>ap-northear-2a</td>
+    </tr>
+    <tr>
+      <td>MyPublicRouteTable</td>
+      <td>MyPublicSubnet-04</td>
+      <td>171.30.4.0/24</td>
+      <td>ap-northear-2b</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="private-subnet-생성">private subnet 생성</h4>
+<blockquote>
+  <p><img src="/assets/images/eks/private-subnet.png" alt="private subnet" title="private subnet" /></p>
+</blockquote>
+
+<h4 id="public-subnet-생성">public subnet 생성</h4>
+<blockquote>
+  <p><img src="/assets/images/eks/public-subnet.png" alt="public subnet" title="public subnet" /></p>
+</blockquote>
+
+<p>나중에 workNode 생성할때 public subnet에  EC2를 생성하기에<br />
+자동 아이피 할당을 꼭 enable 해야 한다. 아님 오류 발생.</p>
+
+<blockquote>
+  <p><img src="/assets/images/eks/enable-auto-ip.png" alt="enable auto ip" title="enable auto ip" /></p>
+</blockquote>
+
+<h4 id="subnet-route-매핑">subnet-route 매핑</h4>
+<blockquote>
+  <p><img src="/assets/images/eks/mapping-route.png" alt="mapping route" title="mapping route" /></p>
+</blockquote>
+
+<h2 id="security-group-생성">Security Group 생성</h2>
+
+<p>EKS 인터넷 접근가능하게 해야 하고  DB는 VPC내에서만 접근 가능하게<br />
+ Security Group을 생성한다.</p>
+
+<h3 id="eks용-퍼블릭-security-group-생성">EKS용 퍼블릭 Security Group 생성</h3>
+<p>참고: <a href="https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/sec-group-reqs.html">Amazon EKS 보안 그룹 요구 사항 및 고려 사항</a></p>
+<blockquote>
+  <p><img src="/assets/images/eks/add_eks_security_group.png" alt="eks public security group" title="eks public security group" /></p>
+</blockquote>
+
+<h3 id="rds-용-security-group-생성">RDS 용 Security Group 생성</h3>
+<p>EKS 노드는  public subnet에 배치돼고 rds는 private subnet에 배치돼기 때문에 
+EKS 노드 RDS에 접근할수 있게 public subnet 아이피 3306포트만 뚫어 준다.</p>
+
+<blockquote>
+  <p><img src="/assets/images/eks/rds-security-group.png" alt="rds security group" title="rds security group" /></p>
+</blockquote>
+
+<h2 id="rds-생성">RDS 생성</h2>
+<h3 id="subnet-group-생성">Subnet Group 생성</h3>
+<p>RDS 생성 때 필요한 SubnetGroup을 생성해 준다<br />
+앞서 ap-northear-2a, ap-northear-2b 에 Private subnet group  생성 하기 때문에 선택해 준다.</p>
+
+<blockquote>
+  <p><img src="/assets/images/eks/subnet-group.png" alt="subnet group" title="subnet group" /></p>
+</blockquote>
+
+<h3 id="mysql-instance-생성">Mysql Instance 생성</h3>
+<p>DB 관라자 계정 및 스팩 선택 후<br />
+생성할때 앞서 만든 Security Group 및 Subnet Group을 선택해준다</p>
+
+<blockquote>
+  <p><img src="/assets/images/eks/create-rds.png" alt="create rds" title="create rds" /></p>
+</blockquote>
+
+<h3 id="keycloak-tablespace-생성">Keycloak Tablespace 생성</h3>
+<p>RDS private subnet에 생성했기에 터널링이 필요하다.<br />
+public subnet에 임시로 EC2 인스턴스 생성후 pem key 생성.<br />
+pem key를 이용하여 터널링 방식으로  DB에 접근하여  schema 생성</p>
+
+<blockquote>
+  <p><img src="/assets/images/eks/tunnul.png" alt="터널링" title="터널링" /><br />
+<br />
+<img src="/assets/images/eks/create-schema.png" alt="터널링" title="터널링" /></p>
+</blockquote>
+
+<h2 id="eks-생성">EKS 생성</h2>
+<p>앞서 생성한 Cluster Service Role를 선택해 준다.</p>
+<blockquote>
+  <p><img src="/assets/images/eks/chosee-eks-cluster-role.png" alt="chosee-eks-cluster-role.png" title="chosee-eks-cluster-role" /></p>
+</blockquote>
+
+<p>앞서 생성한  public subnet을 선택해 준다.</p>
+<blockquote>
+  <p><img src="/assets/images/eks/eks-select-public-subnet.png" alt="eks-select-public-subnet.png" title="eks-select-public-subnet" /></p>
+</blockquote>
+
+<p>앞서 생성한  public security group을 선택해 준다.</p>
+<blockquote>
+  <p><img src="/assets/images/eks/eks-select-public-security-group.png" alt="eks-select-public-security-group" title="eks-select-public-security-group" /></p>
+</blockquote>
+
+<h3 id="node-group을-생성한다">Node group을 생성한다.</h3>
+<p>앞서 생성한 Worker Node Role을 선택해 준다.</p>
+<blockquote>
+  <p><img src="/assets/images/eks/select-node-group-role.png" alt="select-node-group-role" title="select-node-group-role" /></p>
+</blockquote>
+
+<p>앞서 생성한  public subnet을 선택해 준다.</p>
+<blockquote>
+  <p><img src="/assets/images/eks/node-select-public-subnet.png" alt="node-select-public-subnet" title="node-select-public-subnet" /></p>
+</blockquote>
+
+<h2 id="keycloak-helm-배포">Keycloak Helm 배포</h2>
+<h3 id="aws-cli-계정-설정">aws cli 계정 설정</h3>
+<p>aws configure 명령어 실행후<br />
+앞서 저장한 관리자 계정 Access key ID, Secret access key를 입력한다.</p>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>aws configure
+</code></pre></div></div>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>aws sts get-caller-identity <span class="c">#적용됐는지 확인 </span>
+aws eks update-kubeconfig <span class="nt">--name</span> MyEks <span class="nt">--region</span> ap-northeast-2  <span class="c"># .kube/config  파일 업데이트 해줌</span>
+</code></pre></div></div>
+
+<h3 id="db-연결-정보-설정">DB 연결 정보 설정</h3>
+<p>DB 연결정보, 포트, 스크마, 계정명을 configmap에 저장한다.</p>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> configmap.yml 
+</code></pre></div></div>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">data</span><span class="pi">:</span>
+  <span class="s">db.host</span><span class="pi">:</span> <span class="s">RDS앤드포인트</span> 
+  <span class="s">db.port</span><span class="pi">:</span> <span class="s2">"</span><span class="s">3306"</span>
+  <span class="s">db.schema</span><span class="pi">:</span> <span class="s">keycloak</span>
+  <span class="s">db.user</span><span class="pi">:</span> <span class="s">RDS계정아이디</span> 
+<span class="na">kind</span><span class="pi">:</span> <span class="s">ConfigMap</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">annotations</span><span class="pi">:</span>
+  <span class="na">creationTimestamp</span><span class="pi">:</span> <span class="s2">"</span><span class="s">2022-08-15T01:09:57Z"</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">my-config</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">default</span>
+  <span class="na">resourceVersion</span><span class="pi">:</span> <span class="s2">"</span><span class="s">13667"</span>
+  <span class="na">uid</span><span class="pi">:</span> <span class="s">daf633e8-5b82-4a1a-b09d-b8b11a8aa025</span>
+</code></pre></div></div>
+<p>DB  계정 비밀번호 secret에 저장한다.</p>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create secret generic my-secret <span class="nt">--from-literal</span><span class="o">=</span>db.password<span class="o">=</span>비밀번호
+</code></pre></div></div>
+
+<h3 id="helm-생성">Helm 생성</h3>
+<p>Helm 생성<br />
+templates 하위에 있는 파일들 아직 안쓰니까 전부 날린다.<br />
+Keycloak 오픈소스 Helm Chart 저장소 추가</p>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm repo add codecentric https://codecentric.github.io/helm-charts <span class="c"># add open source helm chart repository</span>
+</code></pre></div></div>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm create my-keycloak
+<span class="nb">cd </span>my-keycloak 
+vi Chart.yaml 
+</code></pre></div></div>
+<p><br />
+Chart.yaml에 keycloak dependency 추가</p>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v2</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">my-keycloak</span>
+<span class="na">description</span><span class="pi">:</span> <span class="s">A Helm chart for Kubernetes</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">application</span>
+<span class="na">version</span><span class="pi">:</span> <span class="s">0.1.0</span>
+<span class="na">appVersion</span><span class="pi">:</span> <span class="s2">"</span><span class="s">1.16.0"</span>
+
+<span class="na">dependencies</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">keycloak</span>
+    <span class="na">version</span><span class="pi">:</span> <span class="s">18.3.0</span>
+    <span class="na">repository</span><span class="pi">:</span> <span class="s2">"</span><span class="s">@codecentric"</span>
+</code></pre></div></div>
+<p>values.yaml 정보 입력 service.type  LoadBalancer로 지정</p>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">keycloak</span><span class="pi">:</span>
+  <span class="na">fullname</span><span class="pi">:</span> <span class="s">my-keycloak</span>
+  <span class="na">cli</span><span class="pi">:</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">ingress</span><span class="pi">:</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">postgresql</span><span class="pi">:</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">service</span><span class="pi">:</span>
+    <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="na">extraEnv</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">- name: DB_VENDOR</span>
+      <span class="s">value: mysql</span>
+    <span class="s">- name: DB_ADDR</span>
+      <span class="s">valueFrom:</span>
+        <span class="s">configMapKeyRef:</span>
+          <span class="s">name: my-config           </span>
+          <span class="s">key: db.host</span>
+    <span class="s">- name: DB_PORT</span>
+      <span class="s">valueFrom:</span>
+        <span class="s">configMapKeyRef:</span>
+          <span class="s">name: my-config           </span>
+          <span class="s">key: db.port</span>
+    <span class="s">- name: DB_DATABASE</span>
+      <span class="s">valueFrom:</span>
+        <span class="s">configMapKeyRef:</span>
+          <span class="s">name: my-config           </span>
+          <span class="s">key: db.schema</span>
+    <span class="s">- name: DB_USER</span>
+      <span class="s">valueFrom:</span>
+        <span class="s">configMapKeyRef:</span>
+          <span class="s">name: my-config           </span>
+          <span class="s">key: db.user</span>
+    <span class="s">- name: DB_PASSWORD</span>
+      <span class="s">valueFrom:</span>
+        <span class="s">secretKeyRef:</span>
+          <span class="s">name: my-secret</span>
+          <span class="s">key: db.password</span>
+          <span class="s">optional: false </span>
+</code></pre></div></div>
+
+<p>dependency 빌드</p>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm dependency build
+</code></pre></div></div>
+<h3 id="helm-install">Helm install</h3>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-keycloak my-keycloak
+</code></pre></div></div>
+
+<h2 id="도메인-설정">도메인 설정</h2>
+<p>route 53 A record에 EKS 생성해준 ELB Endpoint 매핑 설정해 준다.</p>
+<blockquote>
+  <p><img src="/assets/images/eks/route53-elb.png" alt="route53-elb" title="route53-elb" /></p>
+</blockquote>
+
+<h3 id="elb-용-acm-생성">ELB 용 ACM 생성</h3>
+<p>ACM 에서 인증서 추가</p>
+<blockquote>
+  <p><img src="/assets/images/eks/add-acm.png" alt="add-acm" title="add-acm" /></p>
+</blockquote>
+
+<p>route 53애 인증서 Validation CNAME 레코드 추가</p>
+<blockquote>
+  <p><img src="/assets/images/eks/cname-value.png" alt="cname-value" title="cname-value" /> <br />
+<br />
+<br />
+<img src="/assets/images/eks/add-c-record.png" alt="add-c-record" title="add-c-record" /></p>
+</blockquote>
+
+<p>ELB에 인증서를 걸어 준다</p>
+<blockquote>
+  <p><img src="/assets/images/eks/add-1.png" alt="add-1" title="add-1" /> <br />
+<img src="/assets/images/eks/add-2.png" alt="add-2" title="add-2" /> <br />
+<img src="/assets/images/eks/add-3.png" alt="add-3" title="add-3" /></p>
+</blockquote>
+
+<h2 id="서버-초기화">서버 초기화</h2>
+<p>Keycloak master 사용자 초기화</p>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec</span> <span class="nt">-it</span> my-keycloak-0 <span class="nt">--</span> /bin/bash <span class="c"># POD 진입</span>
+/opt/jboss/keycloak/bin/add-user-keycloak.sh <span class="nt">-r</span> master <span class="nt">-u</span> oopsy1988 <span class="nt">-p</span> 비밀번호   <span class="c"># master 사용자 추가 </span>
+/opt/jboss/keycloak/bin/jboss-cli.sh <span class="nt">--connect</span> <span class="nb">command</span><span class="o">=</span>:reload  <span class="c"># 서버 재시작  </span>
+</code></pre></div></div>
+
+
+
+    </div>
+
+</article>
+<div class="post-nav"><a class="previous" href="/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" title="Keycloak 카카오 로그인 연동">Keycloak 카카오 로그인 연동</a><a class="next" href="/keycloak/2022/08/23/Keycloak-EKS-Ingress-%EC%A0%81%EC%9A%A9.html" title="Keycloak EKS Ingress 적용">Keycloak EKS Ingress 적용</a></div><div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        <li><a class="post-link" href="/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99-copy.html" title="Keycloak EKS Ingress 적용">Vue,SpringBoot 프로젝트 Keycloak 연동</a></li><li><a class="post-link" href="/keycloak/2022/07/23/Keycloak-%EC%9D%B4%EB%9E%80.html" title="Keycloak EKS Ingress 적용">Keycloak이란</a></li><li><a class="post-link" href="/keycloak/2022/08/05/Keycloak-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%86%A1-%EB%A1%9C%EA%B7%B8%EC%9D%B8.html" title="Keycloak EKS Ingress 적용">Keycloak 카카오 로그인 연동</a></li><li><a class="post-link" href="/keycloak/2022/08/13/Keycloak-EKS-%EB%B0%B0%ED%8F%AC(Helm).html" title="Keycloak EKS Ingress 적용">Keycloak EKS 배포(Helm)</a></li></ul>
+    </div><div class="post-comments"><div id="utterances-placeholder"></div>
+<script>
+  const utterancesThemeFromDataTheme = () => {
+    const dataTheme = document.documentElement.getAttribute('data-theme');
+    return `github-${dataTheme}`;
+  };
+
+  const setUtterancesTheme = () => {
+    const iframe = document.querySelector('.utterances-frame');
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: utterancesThemeFromDataTheme()
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es');
+    }
+  }
+
+  // dynamic change
+  const observer = new MutationObserver((mutationsList, observer) => {
+    for (let mutation of mutationsList) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+        setUtterancesTheme();
+      }
+    }
+  });
+  observer.observe(document.documentElement, { attributes: true, childList: false, subtree: false });
+
+  let utterancesScript = document.createElement('script');
+  utterancesScript.async = true;
+  utterancesScript.src = 'https://utteranc.es/client.js';
+  utterancesScript.crossOrigin = 'anonymous';
+  utterancesScript.setAttribute('issue-term', 'title');
+  utterancesScript.setAttribute('label', 'Comments');
+  utterancesScript.setAttribute('repo', 'ooopsy/ooopsy.github.io');
+  utterancesScript.setAttribute('theme', utterancesThemeFromDataTheme());
+
+  const placeholder = document.getElementById('utterances-placeholder');
+  placeholder.parentNode.replaceChild(utterancesScript, placeholder);
+</script></div></section>
+</div>
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">TOC</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+      <div> </div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div class="footer-col rss-subscribe">Subscribe <a href="/feed.xml">via RSS</a></div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
