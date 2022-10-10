@@ -8,9 +8,9 @@ tags: SpringSecurity 5.7 Keycloak
 
 SpringSecurity 5.7 버전부터 OAuth2.0 및 SAML2.0에 대한 지원이 추가되면서   
 Keycloak 홈페이지에서도 기존에 제공하는 Springboot Keycloak Adapter보다    
-SpringSecurity6를 사용하는 것을 추천하고 있다.   
+SpringSecurity 5.7을 사용하는 것을 추천하고 있다.   
 
-이 문서는 SpringSecurity5.6 기반이므로 이전 버전은   
+이 문서는 SpringSecurity5.7 기반이므로 이전 버전은   
 Keycloak Adapter를 사용하는 이하 링크를 참조하면 될거 같다.   
 [Vue,SpringBoot 프로젝트 Keycloak 연동](https://www.sad-waterdeer.com/keycloak/2022/09/11/Vue,SpringBoot-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Keycloak-%EC%97%B0%EB%8F%99.html)
 
